@@ -33,12 +33,6 @@
 - [ ] **GraphBall finite cardinality lemmas** — `card_ball_mono` etc. require
   `[Fintype V]`. Separated from base definition by design. *(GraphBall.lean)*
 
-- [ ] **pathGraph distance lemmas** — `pathGraph_dist`, `pathGraph_dist_zero_last`,
-  `pathGraph_edist_zero_last`, `pathGraph_exists_walk_zero_last`. These fill a
-  Mathlib gap: distance in `pathGraph (n+1)` equals `|i - j|`. Currently sorry
-  stubs. Needed as building blocks for recursive graph distance proofs.
-  *(PathGraphDist.lean)*
-
 ### Deferred (future milestones)
 
 - [ ] **Transfractal case u = 1** — Infinite d_B. Separate theorem with
@@ -84,3 +78,8 @@
   (squeeze). Zero sorry, zero custom axioms. Proves the limit, not yet
   formally connected to box-counting dimension.
   *(FlowerDimension.lean)*
+
+- [x] **pathGraph distance lemmas** — `pathGraph_dist`, `pathGraph_dist_zero_last`,
+  `pathGraph_edist_zero_last`, `pathGraph_exists_walk_zero_last`. Distance in
+  `pathGraph (n+1)` equals `|i - j|`. Zero sorry.
+  *(PathGraphDist.lean)*

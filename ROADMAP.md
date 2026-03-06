@@ -60,7 +60,7 @@ construction sketch with five layers:
   giving the final `flowerGraph_dist_hubs` bridge statement.
 - Projection map `FlowerVert.project` is defined (not sorry).
 
-Building block: `PathGraphDist.lean` provides sorry-stub lemmas for
+Building block: `PathGraphDist.lean` provides fully proved lemmas for
 `SimpleGraph.pathGraph` distance (`pathGraph_dist`, `pathGraph_dist_zero_last`,
 `pathGraph_edist_zero_last`). These have no Mathlib counterpart and are a
 candidate for a second upstream PR.
