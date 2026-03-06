@@ -21,9 +21,15 @@ log-ratio convergence for the **arithmetic** (u,v)-flower model. It is not yet
 a formal theorem about graph box-counting dimension.
 
 Supporting infrastructure (monotonicity, cast identities, log helpers) is
-being built in `FlowerCounts`, `FlowerDiameter`, and `FlowerLog` to stabilize
-the proof base for F2/F3. Leaf lemmas are proved via a combination of human
-authoring and Aristotle automated proof search.
+in `FlowerCounts`, `FlowerDiameter`, and `FlowerLog`. Leaf lemmas are proved
+via a combination of human authoring and Aristotle automated proof search.
+
+**Upstream contribution:** `GraphBall.lean` defines `SimpleGraph.ball` via
+`edist` and contains 12 proved lemmas (membership, monotonicity, radius
+extremes, center membership, symmetry, adjacency, triangle inequality).
+A draft Mathlib PR is prepared (`docs/internal/pr-mathlib-ball-draft.md`);
+must post to Zulip before opening. Need to check overlap with PR #33077
+(`SetRel.ball` by Yael Dillies).
 
 ### Next
 
@@ -34,6 +40,30 @@ authoring and Aristotle automated proof search.
 
 **F2** is the narrower bridge: define `flowerGraph u v g : SimpleGraph (Fin (flowerVertCount u v g))`
 and prove `(flowerGraph u v g).dist (hub0 u v g) (hub1 u v g) = flowerHubDist u v g`.
+
+**F2 design status:** `FlowerConstruction.lean` contains a structured-gadget
+construction sketch with five layers:
+
+- Layer 0: `GadgetPos` inductive and `LocalEdge = Fin u ⊕ Fin v` for the
+  replacement gadget, with `localSrc`/`localTgt`.
+- Layer 1: `FlowerEdge u v g` (recursive edge index type) and
+  `FlowerVert u v g` (hubs + sigma of internal vertices by generation).
+- Layer 2: `edgeEndpoints` via recursive gadget resolution, plus
+  `edgeSrc_ne_edgeTgt` (sorry stub).
+- Layer 3: `flowerGraph'` as a `SimpleGraph` on `FlowerVert`, with
+  `flowerAdj'` defined by edge existence.
+- Layer 4: Distance proof via upper bound (exhibited walk of length `u^g`)
+  and lower bound (projection argument). `flowerGraph'_dist_hubs` assembles
+  these into the equality. Statement proved modulo sorry stubs in the
+  sub-lemmas.
+- Layer 5: Transport to `Fin (flowerVertCount u v g)` via `Fintype.equivFinOfCardEq`,
+  giving the final `flowerGraph_dist_hubs` bridge statement.
+- Projection map `FlowerVert.project` is defined (not sorry).
+
+Building block: `PathGraphDist.lean` provides sorry-stub lemmas for
+`SimpleGraph.pathGraph` distance (`pathGraph_dist`, `pathGraph_dist_zero_last`,
+`pathGraph_edist_zero_last`). These have no Mathlib counterpart and are a
+candidate for a second upstream PR.
 
 **F3** is the target theorem: `HasLogRatioDimension (flowerGraph u v) (hub0 u v) (hub1 u v) (log(u+v)/log u)`.
 The definition `HasLogRatioDimension` is in `FlowerLogRatio.lean` (adapted from

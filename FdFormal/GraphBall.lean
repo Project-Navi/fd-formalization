@@ -6,6 +6,9 @@ Authors: Nelson Spence
 import Mathlib.Combinatorics.SimpleGraph.Metric
 import Mathlib.Combinatorics.SimpleGraph.Finite
 
+set_option relaxedAutoImplicit false
+set_option autoImplicit false
+
 /-!
 # Metric balls for simple graphs
 
@@ -32,9 +35,6 @@ excluded from finite-radius balls.
 
 simple graph, metric ball, edist, graph distance
 -/
-
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
 
 namespace SimpleGraph
 
@@ -85,12 +85,11 @@ theorem ball_anti {G' : SimpleGraph V} {c : V} {r : ℕ∞} (h : G ≤ G') :
 /-! ### Center and symmetry -/
 
 /-- The center vertex belongs to any ball around it. -/
-@[simp]
 theorem center_mem_ball {c : V} {r : ℕ∞} :
     c ∈ G.ball c r := by
   simp [ball]
 
-theorem nonempty_ball {c : V} {r : ℕ∞} : (G.ball c r).Nonempty :=
+theorem ball_nonempty {c : V} {r : ℕ∞} : (G.ball c r).Nonempty :=
   ⟨c, center_mem_ball⟩
 
 /-- Ball membership is symmetric in center and point. -/

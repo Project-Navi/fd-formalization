@@ -6,9 +6,14 @@
 
 - [ ] **SimpleGraph realization + edist bridge** — The log-ratio theorem uses
   pure arithmetic recurrences. A bridge theorem should connect `flowerHubDist`
-  to `SimpleGraph.edist` on an explicit graph model. This is the narrower of
-  the two paths to connecting the log-ratio result to actual graph distance.
-  *(FlowerGraph.lean)*
+  to `SimpleGraph.edist` on an explicit graph model. **Design progress:**
+  `FlowerConstruction.lean` implements a structured-gadget approach with
+  `GadgetPos`, `LocalEdge`, recursive `FlowerEdge` edge indices,
+  `edgeEndpoints` resolution, `FlowerVert` with hub embedding, `flowerGraph'`
+  as `SimpleGraph`, projection map for lower bound, and `flowerGraph_dist_hubs`
+  as the F2 bridge target. Several sorry stubs remain (irreflexivity,
+  connectivity, walk/distance bounds, vertex card, final transport).
+  *(FlowerConstruction.lean, FlowerGraph.lean)*
 
 - [ ] **Log-ratio dimension bridge** — Prove `HasLogRatioDimension` for the
   (u,v)-flower family. Definition exists in `FlowerLogRatio.lean`. Requires
@@ -18,11 +23,21 @@
 ### Upstream candidates
 
 - [ ] **SimpleGraph.ball PR** — Clean up GraphBall.lean for Mathlib PR.
-  Watch PR #33077 (Yael Dillies, SetRel.ball) for potential overlap.
-  Key reviewer: Rida Hamadani. *(GraphBall.lean)*
+  Now has 12 lemmas (expanded API): `mem_ball`, `edist_le_of_mem_ball`,
+  `ball_zero`, `ball_top`, `ball_mono`, `ball_anti`, `center_mem_ball`,
+  `nonempty_ball`, `ball_comm`, `ball_one_eq`, `adj_of_mem_ball_one`,
+  `mem_ball_of_mem_ball_of_mem_ball`. Watch PR #33077 (Yael Dillies,
+  SetRel.ball) for potential overlap. Key reviewer: Rida Hamadani.
+  *(GraphBall.lean)*
 
 - [ ] **GraphBall finite cardinality lemmas** — `card_ball_mono` etc. require
   `[Fintype V]`. Separated from base definition by design. *(GraphBall.lean)*
+
+- [ ] **pathGraph distance lemmas** — `pathGraph_dist`, `pathGraph_dist_zero_last`,
+  `pathGraph_edist_zero_last`, `pathGraph_exists_walk_zero_last`. These fill a
+  Mathlib gap: distance in `pathGraph (n+1)` equals `|i - j|`. Currently sorry
+  stubs. Needed as building blocks for recursive graph distance proofs.
+  *(PathGraphDist.lean)*
 
 ### Deferred (future milestones)
 

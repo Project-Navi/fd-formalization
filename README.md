@@ -34,7 +34,7 @@ This is the ground truth formula that [navi-fractal](https://github.com/Project-
 
 | Declaration | File | Topic | Mathlib status |
 |-------------|------|-------|----------------|
-| `SimpleGraph.ball` | `GraphBall` | Metric ball via `edist` | No `SimpleGraph.ball` in Mathlib |
+| `SimpleGraph.ball` + 11 lemmas | `GraphBall` | Metric ball via `edist` (basic API, 12 lemmas) | No `SimpleGraph.ball` in Mathlib |
 
 ## Axiom boundary
 
@@ -60,14 +60,16 @@ lake build --wfail   # fail on any sorry or warning
 
 ```
 FdFormal/
-  GraphBall.lean         — SimpleGraph.ball via edist (upstream candidate)
+  GraphBall.lean         — SimpleGraph.ball via edist, 12 lemmas (upstream candidate)
   FlowerGraph.lean       — Hub vertices and structural helpers
   FlowerCounts.lean      — Exact edge/vertex count formulas, bounds, monotonicity
   FlowerDiameter.lean    — Hub-distance scaling L_g = u^g, cast identities
-  FlowerLog.lean         — Log identities and squeeze-sandwich bounds
+  FlowerLog.lean         — Log identities and squeeze-sandwich bounds (all proofs complete)
   FlowerLogRatio.lean    — HasLogRatioDimension definition (bridge target)
   FlowerDimension.lean   — Headline theorem: log-ratio limit = log(u+v) / log(u)
-  Verify.lean            — #print axioms dashboard
+  PathGraphDist.lean     — pathGraph distance lemmas (building block for F2)
+  FlowerConstruction.lean — F2 bridge construction (sketch, exploratory)
+  Verify.lean            — #print axioms dashboard (17 declarations)
 ```
 
 ## Mathematical background

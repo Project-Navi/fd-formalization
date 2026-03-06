@@ -35,15 +35,19 @@ flower graph, logarithm, squeeze bounds
 
 open Real
 
+section FlowerLog
+
+variable (u v g : ℕ)
+
 /-! ### Log identities -/
 
 /-- `log(L_g) = g * log(u)`: hub distance log scales linearly in `g`. -/
-theorem log_flowerHubDist_eq (u v g : ℕ) :
+theorem log_flowerHubDist_eq :
     log (↑(flowerHubDist u v g) : ℝ) = ↑g * log (↑u : ℝ) := by
   rw [← log_pow, ← Nat.cast_pow, flowerHubDist_eq_pow]
 
 /-- `log(E_g) = g * log(u + v)`: edge count log scales linearly in `g`. -/
-theorem log_flowerEdgeCount_eq (u v g : ℕ) :
+theorem log_flowerEdgeCount_eq :
     log (↑(flowerEdgeCount u v g) : ℝ) = ↑g * log (↑(u + v) : ℝ) := by
   rw [← log_pow, ← Nat.cast_pow, flowerEdgeCount_eq_pow]
 
@@ -53,10 +57,12 @@ The residual `log N_g - g * log(u + v)` is bounded between `log((w-2)/(w-1))`
 and `log 2`. Dividing by `g * log u` and squeezing to zero gives the
 log-ratio limit in `FlowerDimension`. -/
 
+variable (hu : 1 < u) (huv : u ≤ v)
+include hu huv
+
 /-- Lower bound on the squeeze residual:
 `log((w-2)/(w-1)) ≤ log N_g - g * log(u + v)`. -/
-theorem log_flowerVertCount_residual_lower (u v g : ℕ) (hu : 1 < u)
-    (huv : u ≤ v) :
+theorem log_flowerVertCount_residual_lower :
     log ((↑(u + v) - 2 : ℝ) / (↑(u + v) - 1)) ≤
     log ↑(flowerVertCount u v g) - ↑g * log (↑(u + v) : ℝ) := by
   have hw_pos : (0 : ℝ) < ↑(u + v) := Nat.cast_pos.mpr (by omega)
@@ -83,8 +89,7 @@ theorem log_flowerVertCount_residual_lower (u v g : ℕ) (hu : 1 < u)
 
 /-- Upper bound on the squeeze residual:
 `log N_g - g * log(u + v) ≤ log 2`. -/
-theorem log_flowerVertCount_residual_upper (u v g : ℕ) (hu : 1 < u)
-    (huv : u ≤ v) :
+theorem log_flowerVertCount_residual_upper :
     log (↑(flowerVertCount u v g) : ℝ) - ↑g * log (↑(u + v) : ℝ) ≤
     log 2 := by
   have hw_pos : (0 : ℝ) < ↑(u + v) := Nat.cast_pos.mpr (by omega)
@@ -101,3 +106,5 @@ theorem log_flowerVertCount_residual_upper (u v g : ℕ) (hu : 1 < u)
   rw [log_mul (by norm_num : (2 : ℝ) ≠ 0)
       (ne_of_gt (pow_pos hw_pos g)), log_pow] at h_log
   linarith
+
+end FlowerLog
