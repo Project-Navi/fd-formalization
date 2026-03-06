@@ -14,8 +14,8 @@ set_option autoImplicit false
 Hub vertices and vertex-type helpers for the (u,v)-flower network
 family from Rozenfeld, Havlin & ben-Avraham (NJP 2007).
 
-The full `SimpleGraph` realization is deferred — the headline
-dimension theorem (in `FlowerDimension`) requires only the counting
+The full `SimpleGraph` realization is deferred — the log-ratio
+convergence theorem (in `FlowerDimension`) requires only the counting
 formulas (`FlowerCounts`) and the hub-distance scaling function
 (`FlowerDiameter`), not a concrete graph construction.
 

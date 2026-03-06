@@ -5,6 +5,8 @@ Authors: Nelson Spence
 -/
 import FdFormal.GraphBall
 import FdFormal.FlowerGraph
+import FdFormal.FlowerLog
+import FdFormal.FlowerLogRatio
 import FdFormal.FlowerDimension
 
 set_option relaxedAutoImplicit false
@@ -41,8 +43,25 @@ verification, axioms, soundness
 #print axioms flowerHubDist_eq_pow
 #print axioms flowerHubDist_pos
 
+-- Monotonicity (FlowerCounts / FlowerDiameter)
+#print axioms flowerEdgeCount_pos
+#print axioms flowerEdgeCount_strict_mono
+#print axioms flowerVertCount_strict_mono
+#print axioms flowerVertCount_cast_eq
+#print axioms flowerHubDist_strict_mono
+#print axioms flowerHubDist_cast_eq_pow
+
 -- Hub vertices (FlowerGraph)
 #print axioms hub0_ne_hub1
 
--- Headline theorem (FlowerDimension)
+-- Log identities and squeeze bounds (FlowerLog)
+#print axioms log_flowerHubDist_eq
+#print axioms log_flowerEdgeCount_eq
+#print axioms log_flowerVertCount_residual_lower
+#print axioms log_flowerVertCount_residual_upper
+
+-- Bridge target definition (FlowerLogRatio)
+#print axioms HasLogRatioDimension
+
+-- Log-ratio convergence (FlowerDimension)
 #print axioms flowerDimension

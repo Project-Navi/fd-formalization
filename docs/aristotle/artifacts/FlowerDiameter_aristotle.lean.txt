@@ -1,11 +1,32 @@
 /-
+This file was edited by Aristotle (https://aristotle.harmonic.fun).
+
+Lean version: leanprover/lean4:v4.24.0
+Mathlib version: f897ebcf72cd16f89ab4577d0c826cd14afaafc7
+This project request had uuid: ae65e26f-d247-4f6b-96e4-7adba9901696
+
+To cite Aristotle, tag @Aristotle-Harmonic on GitHub PRs/issues, and add as co-author to commits:
+Co-authored-by: Aristotle (Harmonic) <aristotle-harmonic@harmonic.fun>
+
+The following was proved by Aristotle:
+
+- theorem flowerHubDist_strict_mono (u v g : ℕ) (hu : 1 < u) :
+    flowerHubDist u v g < flowerHubDist u v (g + 1)
+
+- theorem flowerHubDist_cast_eq_pow (u v g : ℕ) :
+    (↑(flowerHubDist u v g) : ℝ) = (↑u : ℝ) ^ g
+-/
+
+/-
 Copyright (c) 2026 Nelson Spence. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nelson Spence
 -/
 import FdFormal.FlowerCounts
 
+
 set_option relaxedAutoImplicit false
+
 set_option autoImplicit false
 
 /-!
@@ -30,8 +51,6 @@ a deferred bridge theorem (see `FlowerGraph.lean`).
 
 - `flowerHubDist_eq_pow` — `flowerHubDist u v g = u ^ g`
 - `flowerHubDist_pos` — `0 < flowerHubDist u v g` when `1 < u`
-- `flowerHubDist_strict_mono` — `L_g < L_{g+1}`
-- `flowerHubDist_cast_eq_pow` — `↑(L_g) = (↑u)^g` in `ℝ`
 - `flowerHubDistReal_pos` — positivity in `ℝ`
 
 ## References
@@ -79,14 +98,15 @@ theorem flowerHubDist_pos (u v g : ℕ) (hu : 1 < u) :
 /-- Hub distance grows strictly between generations. -/
 theorem flowerHubDist_strict_mono (u v g : ℕ) (hu : 1 < u) :
     flowerHubDist u v g < flowerHubDist u v (g + 1) := by
-  exact lt_mul_of_one_lt_left (flowerHubDist_pos u v g hu) hu
+  exact lt_mul_of_one_lt_left ( flowerHubDist_pos u v g hu ) hu
 
 /-! ### Cast identity -/
 
 /-- Hub distance cast to `ℝ` equals `u ^ g`. -/
 theorem flowerHubDist_cast_eq_pow (u v g : ℕ) :
     (↑(flowerHubDist u v g) : ℝ) = (↑u : ℝ) ^ g := by
-  simp [flowerHubDist_eq_pow, Nat.cast_pow]
+  convert congr_arg _ ( flowerHubDist_eq_pow u v g ) using 1;
+  norm_cast
 
 /-! ### Real-valued wrapper -/
 

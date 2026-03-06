@@ -4,11 +4,16 @@
 
 ### Deferred graph realization
 
-- [ ] **SimpleGraph model of the (u,v)-flower** — The headline dimension theorem
-  uses pure arithmetic recurrences for vertex count and hub distance. A future
-  bridge theorem should connect `flowerHubDist` to `SimpleGraph.edist` on an
-  explicit graph model. This is a separate milestone, not a blocker.
+- [ ] **SimpleGraph realization + edist bridge** — The log-ratio theorem uses
+  pure arithmetic recurrences. A bridge theorem should connect `flowerHubDist`
+  to `SimpleGraph.edist` on an explicit graph model. This is the narrower of
+  the two paths to connecting the log-ratio result to actual graph distance.
   *(FlowerGraph.lean)*
+
+- [ ] **Log-ratio dimension bridge** — Prove `HasLogRatioDimension` for the
+  (u,v)-flower family. Definition exists in `FlowerLogRatio.lean`. Requires
+  the SimpleGraph realization above; then F3 follows from F1 + distance bridge.
+  *(FlowerLogRatio.lean)*
 
 ### Upstream candidates
 
@@ -46,6 +51,21 @@
   arithmetic recurrence (Option 3). No axiom fallback needed.
   *(FlowerDiameter.lean)*
 
-- [x] **Headline dimension theorem** — `flowerDimension` proved via Route B
-  (squeeze). Zero sorry, zero custom axioms.
+- [x] **Monotonicity + cast identities** — `flowerEdgeCount_strict_mono`,
+  `flowerVertCount_strict_mono`, `flowerHubDist_strict_mono`,
+  `flowerVertCount_cast_eq`, `flowerHubDist_cast_eq_pow`. Leaf infrastructure
+  for downstream proofs. *(FlowerCounts.lean, FlowerDiameter.lean)*
+
+- [x] **Log identities + squeeze bounds** — `log_flowerHubDist_eq`,
+  `log_flowerEdgeCount_eq`, `log_flowerVertCount_residual_lower/upper`.
+  Extracted from FlowerDimension inline proofs into standalone lemmas.
+  *(FlowerLog.lean)*
+
+- [x] **HasLogRatioDimension definition** — Bridge target for F3. Uses
+  `SimpleGraph.dist`, not `edist`. Compiles clean.
+  *(FlowerLogRatio.lean)*
+
+- [x] **Log-ratio convergence theorem** — `flowerDimension` proved via Route B
+  (squeeze). Zero sorry, zero custom axioms. Proves the limit, not yet
+  formally connected to box-counting dimension.
   *(FlowerDimension.lean)*

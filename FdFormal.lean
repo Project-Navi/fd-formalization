@@ -7,5 +7,7 @@ import FdFormal.GraphBall
 import FdFormal.FlowerGraph
 import FdFormal.FlowerCounts
 import FdFormal.FlowerDiameter
+import FdFormal.FlowerLog
+import FdFormal.FlowerLogRatio
 import FdFormal.FlowerDimension
 import FdFormal.Verify

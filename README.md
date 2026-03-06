@@ -1,16 +1,19 @@
-# Fractal Dimension — Lean 4 Formalization
+# (u,v)-Flower Log-Ratio Convergence — Lean 4 Formalization
 
-Formal verification of the (u,v)-flower analytical dimension formula from:
+Formal verification of the vertex-count / hub-distance log-ratio limit for the (u,v)-flower network family, from:
 
 > H. D. Rozenfeld, S. Havlin & D. ben-Avraham, "Fractal and transfractal recursive scale-free nets," *New Journal of Physics* **9**, 175 (2007).
 
 ## What is verified
 
-The fractal (box-counting) dimension of the (u,v)-flower network family:
+For the arithmetic (u,v)-flower model, the log-ratio of vertex count to hub distance converges to `log(u+v) / log(u)`:
 
 ```
-d_B = ln(u + v) / ln(u)    for 1 < u ≤ v
+lim   log |V_g| / log L_g  =  ln(u + v) / ln(u)    for 1 < u ≤ v
+g→∞
 ```
+
+In the physics literature (Rozenfeld et al. 2007), this quantity equals the box-counting fractal dimension `d_B`. **This formalization proves the log-ratio convergence; a formal bridge to a box-counting definition is not yet built** (see `debt.md`).
 
 This is the ground truth formula that [navi-fractal](https://github.com/Project-Navi/navi-fractal) calibrates its sandbox dimension estimates against (see the calibration table in that project's README).
 
@@ -21,9 +24,11 @@ This is the ground truth formula that [navi-fractal](https://github.com/Project-
 | Edge count | `flowerEdgeCount_eq_pow` | `FlowerCounts` | `E_g = (u+v)^g` |
 | Vertex count | `flowerVertCount_eq` | `FlowerCounts` | `(w-1) N_g = (w-2) w^g + w` |
 | Two-sided bounds | `flowerVertCount_lower/upper` | `FlowerCounts` | Squeeze inputs |
+| Monotonicity | `flowerVertCount_strict_mono` etc. | `FlowerCounts`/`FlowerDiameter` | `N_g`, `E_g`, `L_g` strictly increasing |
 | Hub distance | `flowerHubDist_eq_pow` | `FlowerDiameter` | `L_g = u^g` |
 | Hub vertices | `hub0`, `hub1` | `FlowerGraph` | Distinguished vertices |
-| **Dimension** | **`flowerDimension`** | **`FlowerDimension`** | **`d_B = log(u+v) / log(u)`** |
+| Log identities | `log_flowerHubDist_eq` etc. | `FlowerLog` | `log L_g = g · log u` |
+| **Log-ratio limit** | **`flowerDimension`** | **`FlowerDimension`** | **`lim log N_g / log L_g = log(u+v) / log(u)`** |
 
 ### Upstream candidate
 
@@ -35,7 +40,7 @@ This is the ground truth formula that [navi-fractal](https://github.com/Project-
 
 **Zero custom axioms.** All results proved from Mathlib primitives. The `#print axioms` dashboard in `Verify.lean` confirms every declaration depends only on `[propext, Classical.choice, Quot.sound]` with no `sorryAx`.
 
-The dimension theorem uses pure arithmetic recurrences for vertex count and hub distance — no `SimpleGraph` construction is in the critical path. A bridge theorem connecting `flowerHubDist` to `SimpleGraph.edist` on an explicit graph model is deferred (see `debt.md`).
+The log-ratio theorem uses pure arithmetic recurrences for vertex count and hub distance — no `SimpleGraph` construction is in the critical path. A bridge theorem connecting `flowerHubDist` to `SimpleGraph.edist` on an explicit graph model, and further to a formal box-counting dimension definition, is deferred (see `debt.md`).
 
 ## Hypotheses
 
@@ -57,17 +62,19 @@ lake build --wfail   # fail on any sorry or warning
 FdFormal/
   GraphBall.lean         — SimpleGraph.ball via edist (upstream candidate)
   FlowerGraph.lean       — Hub vertices and structural helpers
-  FlowerCounts.lean      — Exact edge/vertex count formulas + bounds
-  FlowerDiameter.lean    — Hub-distance scaling L_g = u^g
-  FlowerDimension.lean   — Headline theorem: d_B = log(u+v) / log(u)
+  FlowerCounts.lean      — Exact edge/vertex count formulas, bounds, monotonicity
+  FlowerDiameter.lean    — Hub-distance scaling L_g = u^g, cast identities
+  FlowerLog.lean         — Log identities and squeeze-sandwich bounds
+  FlowerLogRatio.lean    — HasLogRatioDimension definition (bridge target)
+  FlowerDimension.lean   — Headline theorem: log-ratio limit = log(u+v) / log(u)
   Verify.lean            — #print axioms dashboard
 ```
 
 ## Mathematical background
 
-The (u,v)-flower is a deterministic recursive network: start with two vertices connected by an edge (generation 0), then at each generation replace every edge with two parallel paths of lengths `u` and `v`. For `u > 1`, this produces a fractal network with finite box-counting dimension. For `u = 1`, the network is transfractal (small-world) with infinite dimension.
+The (u,v)-flower is a deterministic recursive network: start with two vertices connected by an edge (generation 0), then at each generation replace every edge with two parallel paths of lengths `u` and `v`. For `u > 1`, the physics literature identifies this as a fractal network with finite box-counting dimension `d_B = log(u+v)/log(u)`. For `u = 1`, the network is transfractal (small-world).
 
-The dimension proof (Route B — squeeze) works as follows:
+The log-ratio convergence proof (Route B — squeeze) works as follows:
 1. Two-sided bounds: `c₁ · w^g ≤ N_g ≤ c₂ · w^g` where `w = u + v`
 2. Hub distance: `L_g = u^g`
 3. Decompose `log(N_g) / (g · log u) = residual + log(w) / log(u)`
@@ -88,9 +95,10 @@ recurrences (Option 3) instead of a full SimpleGraph construction, and the zero-
 target — is the core contribution. The underlying mathematics is from Rozenfeld et al. 2007.
 
 **What AI tools did**: Claude Opus assisted with Lean 4 syntax, Mathlib API
-navigation, and proof term synthesis. These roles are analogous to `omega`,
-`aesop`, and other proof automation — the strategy is human, the term-level
-search is machine-assisted.
+navigation, and proof term synthesis. Aristotle (Harmonic) independently proved
+leaf lemmas (positivity, monotonicity, cast identities) via automated proof search.
+These roles are analogous to `omega`, `aesop`, and other proof automation — the
+strategy is human, the term-level search is machine-assisted.
 
 **Verification**: The final arbiter is the Lean compiler:
 ```bash

@@ -1,4 +1,30 @@
 /-
+This file was edited by Aristotle (https://aristotle.harmonic.fun).
+
+Lean version: leanprover/lean4:v4.24.0
+Mathlib version: f897ebcf72cd16f89ab4577d0c826cd14afaafc7
+This project request had uuid: d999a870-6707-49fd-91b4-8b9fadda7451
+
+To cite Aristotle, tag @Aristotle-Harmonic on GitHub PRs/issues, and add as co-author to commits:
+Co-authored-by: Aristotle (Harmonic) <aristotle-harmonic@harmonic.fun>
+
+The following was proved by Aristotle:
+
+- theorem flowerEdgeCount_pos (u v g : ℕ) (hw : 0 < u + v) :
+    0 < flowerEdgeCount u v g
+
+- theorem flowerEdgeCount_strict_mono (u v g : ℕ) (hw : 1 < u + v) :
+    flowerEdgeCount u v g < flowerEdgeCount u v (g + 1)
+
+- theorem flowerVertCount_strict_mono (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+    flowerVertCount u v g < flowerVertCount u v (g + 1)
+
+- theorem flowerVertCount_cast_eq (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+    (↑(u + v) - 1 : ℝ) * (↑(flowerVertCount u v g) : ℝ) =
+    (↑(u + v) - 2 : ℝ) * (↑(u + v) : ℝ) ^ g + (↑(u + v) : ℝ)
+-/
+
+/-
 Copyright (c) 2026 Nelson Spence. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nelson Spence
@@ -7,7 +33,9 @@ import Mathlib.Tactic.Zify
 import Mathlib.Tactic.Linarith
 import Mathlib.Data.Real.Basic
 
+
 set_option relaxedAutoImplicit false
+
 set_option autoImplicit false
 
 /-!
@@ -36,14 +64,10 @@ depend on the graph representation.
 ## Main statements
 
 - `flowerEdgeCount_eq_pow` — `E_g = w^g`
-- `flowerEdgeCount_pos` — `0 < E_g`
-- `flowerEdgeCount_strict_mono` — `E_g < E_{g+1}`
 - `flowerVertCount_eq` — `(w - 1) * N_g = (w - 2) * w^g + w`
-- `flowerVertCount_pos` — `0 < N_g`
 - `flowerVertCount_lower` — `(w - 2) * w^g ≤ (w - 1) * N_g`
 - `flowerVertCount_upper` — `(w - 1) * N_g ≤ 2 * (w - 1) * w^g`
-- `flowerVertCount_strict_mono` — `N_g < N_{g+1}`
-- `flowerVertCount_cast_eq` — recurrence in `ℝ`
+- `flowerVertCount_pos` — `0 < N_g`
 
 ## References
 
@@ -87,12 +111,6 @@ theorem flowerEdgeCount_eq_pow (u v g : ℕ) :
   induction g with
   | zero => simp
   | succ g ih => rw [flowerEdgeCount_succ, ih, pow_succ, mul_comm]
-
-/-- Edge count is positive when `u + v > 0`. -/
-theorem flowerEdgeCount_pos (u v g : ℕ) (hw : 0 < u + v) :
-    0 < flowerEdgeCount u v g := by
-  rw [flowerEdgeCount_eq_pow]
-  positivity
 
 /-! ### Vertex count -/
 
@@ -143,17 +161,23 @@ theorem flowerVertCount_upper (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
 
 /-! ### Monotonicity -/
 
+/-- Edge count is positive when `u + v > 0`. -/
+theorem flowerEdgeCount_pos (u v g : ℕ) (hw : 0 < u + v) :
+    0 < flowerEdgeCount u v g := by
+  exact Nat.recOn g ( Nat.succ_pos _ ) fun n ih => mul_pos hw ih;
+
 /-- Edge count grows strictly between generations. -/
 theorem flowerEdgeCount_strict_mono (u v g : ℕ) (hw : 1 < u + v) :
     flowerEdgeCount u v g < flowerEdgeCount u v (g + 1) := by
-  simp only [flowerEdgeCount_succ]
-  exact lt_mul_of_one_lt_left (flowerEdgeCount_pos u v g (by omega)) hw
+  exact lt_mul_of_one_lt_left ( Nat.recOn g ( by tauto ) fun n ihn => by rw [ flowerEdgeCount_succ ] ; nlinarith ) ( by linarith )
 
 /-- Vertex count grows strictly between generations. -/
 theorem flowerVertCount_strict_mono (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     flowerVertCount u v g < flowerVertCount u v (g + 1) := by
-  simp only [flowerVertCount_succ]
-  exact lt_add_of_pos_right _ (Nat.mul_pos (by omega) (flowerEdgeCount_pos u v g (by omega)))
+  -- By definition of $flowerVertCount$, we have $flowerVertCount u v (g + 1) = flowerVertCount u v g + (u + v - 2) * flowerEdgeCount u v g$.
+  have h_def : flowerVertCount u v (g + 1) = flowerVertCount u v g + (u + v - 2) * flowerEdgeCount u v g := by
+    rfl;
+  exact h_def.symm ▸ lt_add_of_pos_right _ ( Nat.mul_pos ( Nat.sub_pos_of_lt ( by linarith ) ) ( flowerEdgeCount_pos u v g ( by linarith ) ) )
 
 /-! ### Cast identity -/
 
@@ -162,12 +186,11 @@ theorem flowerVertCount_strict_mono (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
 theorem flowerVertCount_cast_eq (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     (↑(u + v) - 1 : ℝ) * (↑(flowerVertCount u v g) : ℝ) =
     (↑(u + v) - 2 : ℝ) * (↑(u + v) : ℝ) ^ g + (↑(u + v) : ℝ) := by
-  have h := flowerVertCount_eq u v g hu huv
-  have h_cast := congr_arg (Nat.cast (R := ℝ)) h
-  simp only [Nat.cast_mul, Nat.cast_pow, Nat.cast_add] at h_cast
-  rw [Nat.cast_sub (by omega : 2 ≤ u + v),
-      Nat.cast_sub (by omega : 1 ≤ u + v)] at h_cast
-  exact_mod_cast h_cast
+  convert congr_arg ( fun x : ℕ => x : ℕ → ℝ ) ( flowerVertCount_eq u v g hu huv ) using 1 ; ring_nf; norm_cast;
+  · rw [ Int.subNatNat_eq_coe ] ; push_cast ; ring;
+    rw [ Nat.cast_sub ] <;> push_cast <;> linarith;
+  · simp +zetaDelta at *;
+    exact Or.inl ( by rw [ Nat.cast_sub ] <;> push_cast <;> linarith )
 
 /-! ### Real-valued wrappers -/
 
