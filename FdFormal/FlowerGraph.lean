@@ -3,55 +3,65 @@ Copyright (c) 2026 Nelson Spence. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nelson Spence
 -/
-import Mathlib.Combinatorics.SimpleGraph.Basic
-import Mathlib.Tactic
+import FdFormal.FlowerCounts
 
 set_option relaxedAutoImplicit false
 set_option autoImplicit false
 
 /-!
-# (u,v)-Flower Graph Construction
+# (u,v)-Flower Graph — Structural Definitions
 
-Recursive construction of the (u,v)-flower network family from
-Rozenfeld, Havlin & ben-Avraham (NJP 2007).
+Hub vertices and vertex-type helpers for the (u,v)-flower network
+family from Rozenfeld, Havlin & ben-Avraham (NJP 2007).
 
-## Construction rule
+The full `SimpleGraph` realization is deferred — the headline
+dimension theorem (in `FlowerDimension`) requires only the counting
+formulas (`FlowerCounts`) and the hub-distance scaling function
+(`FlowerDiameter`), not a concrete graph construction.
 
-At each generation, every edge is replaced by two parallel paths of
-lengths `u` and `v` (with `1 < u` and `u ≤ v`). The case `u = 1`
-produces transfractal (small-world) networks with infinite box-counting
-dimension and is excluded from this formalization.
+A future bridge theorem can connect `flowerHubDist` to
+`SimpleGraph.edist` on an explicit graph model.
 
 ## Main definitions
 
-- `FlowerGraph` — the (u,v)-flower at generation `g`
+- `hub0`, `hub1` — the two distinguished hub vertices as `Fin` indices
 
-## Implementation notes
+## Main statements
 
-Uses a custom recursive vertex type rather than quotient-identification.
-The vertex type grows with each generation as new intermediate vertices
-are inserted along subdivided edges. Hub vertices from generation 0 are
-tracked through the recursion.
-
-The representation prioritizes proof tractability over computational
-efficiency — boring wins in Lean.
+- `two_le_flowerVertCount` — vertex count is at least 2
+- `hub0_ne_hub1` — the two hubs are distinct
 
 ## References
 
-- [Rozenfeld2007] Rozenfeld, Havlin & ben-Avraham, "Fractal and
-  transfractal recursive scale-free nets," NJP 9:175 (2007).
+- [Rozenfeld2007] §2, construction and hub structure.
+
+## Tags
+
+flower graph, hub vertices, fractal network
 -/
 
--- TODO: Define FlowerGraph construction.
--- The key design decision is the vertex type representation.
--- Options considered:
---   (a) Fin-indexed: FlowerGraph on Fin (V_count u v g)
---   (b) Inductive vertex type with generation tags
---   (c) Sigma type: Σ (e : edges of gen g-1), Fin (path_len - 1)
---
--- Option (a) is simplest for Fintype instances but hardest for
--- tracking hub identity across generations.
--- Option (c) is closest to the mathematical construction but
--- requires careful handling of hub merging.
---
--- This file will be filled in during implementation.
+/-! ### Vertex count helpers -/
+
+/-- The vertex count is at least 2 for all generations. -/
+theorem two_le_flowerVertCount (u v g : ℕ) :
+    2 ≤ flowerVertCount u v g := by
+  induction g with
+  | zero => simp
+  | succ g ih =>
+    simp only [flowerVertCount_succ]
+    omega
+
+/-! ### Hub vertices -/
+
+/-- Hub vertex 0 at generation `g`. -/
+def hub0 (u v g : ℕ) : Fin (flowerVertCount u v g) :=
+  ⟨0, flowerVertCount_pos u v g⟩
+
+/-- Hub vertex 1 at generation `g`. -/
+def hub1 (u v g : ℕ) : Fin (flowerVertCount u v g) :=
+  ⟨1, two_le_flowerVertCount u v g⟩
+
+/-- The two hub vertices are distinct. -/
+@[simp]
+theorem hub0_ne_hub1 (u v g : ℕ) : hub0 u v g ≠ hub1 u v g := by
+  simp [hub0, hub1, Fin.ext_iff]

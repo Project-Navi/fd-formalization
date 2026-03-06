@@ -18,11 +18,12 @@ This is the ground truth formula that [navi-fractal](https://github.com/Project-
 
 | Step | Declaration | File | Topic |
 |------|-------------|------|-------|
-| Construction | `FlowerGraph` | `FlowerGraph` | Recursive (u,v)-flower |
-| Edge count | `flower_edge_count` | `FlowerCounts` | `E_g = (u+v)^g` |
-| Vertex count | `flower_vertex_count` | `FlowerCounts` | `(w-1) N_g = (w-2) w^g + w` |
-| Diameter | `flower_diam_eq` | `FlowerDiameter` | `L_g = u^g` |
-| Dimension | `flower_dimension` | `FlowerDimension` | `d_B = log(u+v) / log(u)` |
+| Edge count | `flowerEdgeCount_eq_pow` | `FlowerCounts` | `E_g = (u+v)^g` |
+| Vertex count | `flowerVertCount_eq` | `FlowerCounts` | `(w-1) N_g = (w-2) w^g + w` |
+| Two-sided bounds | `flowerVertCount_lower/upper` | `FlowerCounts` | Squeeze inputs |
+| Hub distance | `flowerHubDist_eq_pow` | `FlowerDiameter` | `L_g = u^g` |
+| Hub vertices | `hub0`, `hub1` | `FlowerGraph` | Distinguished vertices |
+| **Dimension** | **`flowerDimension`** | **`FlowerDimension`** | **`d_B = log(u+v) / log(u)`** |
 
 ### Upstream candidate
 
@@ -32,9 +33,9 @@ This is the ground truth formula that [navi-fractal](https://github.com/Project-
 
 ## Axiom boundary
 
-**None.** All results proved from Mathlib primitives — no custom axioms or typeclasses. The formalization uses `SimpleGraph.edist` for graph distance, `Fintype.card` for counting, `Real.log` for logarithms, and `Nat.rec` induction for generation-recursive proofs.
+**Zero custom axioms.** All results proved from Mathlib primitives. The `#print axioms` dashboard in `Verify.lean` confirms every declaration depends only on `[propext, Classical.choice, Quot.sound]` with no `sorryAx`.
 
-Run `#print axioms` in `FdFormal/Verify.lean` to confirm no `sorryAx` — all theorems should depend only on `[propext, Classical.choice, Quot.sound]`.
+The dimension theorem uses pure arithmetic recurrences for vertex count and hub distance — no `SimpleGraph` construction is in the critical path. A bridge theorem connecting `flowerHubDist` to `SimpleGraph.edist` on an explicit graph model is deferred (see `debt.md`).
 
 ## Hypotheses
 
@@ -55,9 +56,9 @@ lake build --wfail   # fail on any sorry or warning
 ```
 FdFormal/
   GraphBall.lean         — SimpleGraph.ball via edist (upstream candidate)
-  FlowerGraph.lean       — Recursive (u,v)-flower construction
-  FlowerCounts.lean      — Exact edge/vertex count formulas
-  FlowerDiameter.lean    — Diameter scaling L_g = u^g
+  FlowerGraph.lean       — Hub vertices and structural helpers
+  FlowerCounts.lean      — Exact edge/vertex count formulas + bounds
+  FlowerDiameter.lean    — Hub-distance scaling L_g = u^g
   FlowerDimension.lean   — Headline theorem: d_B = log(u+v) / log(u)
   Verify.lean            — #print axioms dashboard
 ```
@@ -66,12 +67,12 @@ FdFormal/
 
 The (u,v)-flower is a deterministic recursive network: start with two vertices connected by an edge (generation 0), then at each generation replace every edge with two parallel paths of lengths `u` and `v`. For `u > 1`, this produces a fractal network with finite box-counting dimension. For `u = 1`, the network is transfractal (small-world) with infinite dimension.
 
-The dimension formula follows from three facts:
-1. The edge count grows as `(u+v)^g` (each edge produces `u+v` new edges)
-2. The vertex count grows proportionally to the edge count
-3. The diameter scales as `u^g` (shortest hub-to-hub path recurses through the short side)
-
-The ratio `log |V_g| / log L_g` therefore tends to `log(u+v) / log(u)`.
+The dimension proof (Route B — squeeze) works as follows:
+1. Two-sided bounds: `c₁ · w^g ≤ N_g ≤ c₂ · w^g` where `w = u + v`
+2. Hub distance: `L_g = u^g`
+3. Decompose `log(N_g) / (g · log u) = residual + log(w) / log(u)`
+4. Squeeze the residual to 0 between `log(c₁) / (g · log u)` and `log(2) / (g · log u)`
+5. The limit is `log(u + v) / log(u)`
 
 ### Key references
 
@@ -82,9 +83,9 @@ The ratio `log |V_g| / log L_g` therefore tends to `log(u+v) / log(u)`.
 ## Development Process
 
 **What the author did**: The formalization architecture — choosing the proof spine
-(counts → diameter → log-ratio), the vertex representation strategy, the decision
-to target zero axioms, and the `edist`-based ball definition — is the core
-contribution. The underlying mathematics is from Rozenfeld et al. 2007.
+(counts + bounds → hub distance → squeeze limit), the decision to use pure arithmetic
+recurrences (Option 3) instead of a full SimpleGraph construction, and the zero-axiom
+target — is the core contribution. The underlying mathematics is from Rozenfeld et al. 2007.
 
 **What AI tools did**: Claude Opus assisted with Lean 4 syntax, Mathlib API
 navigation, and proof term synthesis. These roles are analogous to `omega`,

@@ -2,25 +2,13 @@
 
 ## Open
 
-### Core proof work
+### Deferred graph realization
 
-- [ ] **FlowerGraph vertex representation** — Choose between Fin-indexed,
-  inductive vertex type, or sigma type. This is the key implementation risk;
-  the vertex type must support Fintype instances and graph metric reasoning.
+- [ ] **SimpleGraph model of the (u,v)-flower** — The headline dimension theorem
+  uses pure arithmetic recurrences for vertex count and hub distance. A future
+  bridge theorem should connect `flowerHubDist` to `SimpleGraph.edist` on an
+  explicit graph model. This is a separate milestone, not a blocker.
   *(FlowerGraph.lean)*
-
-- [ ] **FlowerDiameter exact formula** — The diameter `L_g = u^g` requires
-  reasoning about shortest paths in the recursive construction. This is
-  where proof complexity concentrates: the vertex type must interact with
-  `SimpleGraph.edist`, and the shortest-path argument recurses through the
-  construction. Parity of u and v may affect the exact formula. Expect this
-  file to be the longest by a factor of ~3x. If friction blocks progress,
-  consider axiomatizing diameter as a fallback (but this weakens the zero-axiom
-  story). *(FlowerDiameter.lean)*
-
-- [ ] **Real-valued wrappers** — Define `V_count_real` and `L_diam_real` with
-  explicit ℕ → ℝ casts and prove positivity lemmas. Cast early to avoid
-  coercion fights in FlowerDimension. *(FlowerCounts.lean, FlowerDiameter.lean)*
 
 ### Upstream candidates
 
@@ -36,7 +24,7 @@
 - [ ] **Transfractal case u = 1** — Infinite d_B. Separate theorem with
   different proof structure. *(new file)*
 
-- [ ] **Multifractal spectrum τ(q)** — Furuya & Yakubo 2011 analytical
+- [ ] **Multifractal spectrum tau(q)** — Furuya & Yakubo 2011 analytical
   formula for (u,v)-flowers. *(new file)*
 
 - [ ] **Scaling relations** — Fronczak et al. 2024 seven-exponent framework.
@@ -50,4 +38,14 @@
 
 ## Resolved
 
-(None yet — project just scaffolded.)
+- [x] **Counting formulas** — `flowerEdgeCount_eq_pow`, `flowerVertCount_eq`,
+  positivity, and two-sided bounds all proved. Real-valued wrappers included.
+  *(FlowerCounts.lean)*
+
+- [x] **Hub distance exact formula** — `flowerHubDist_eq_pow` proved as pure
+  arithmetic recurrence (Option 3). No axiom fallback needed.
+  *(FlowerDiameter.lean)*
+
+- [x] **Headline dimension theorem** — `flowerDimension` proved via Route B
+  (squeeze). Zero sorry, zero custom axioms.
+  *(FlowerDimension.lean)*

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nelson Spence
 -/
 import FdFormal.GraphBall
+import FdFormal.FlowerGraph
 import FdFormal.FlowerDimension
 
 set_option relaxedAutoImplicit false
@@ -17,6 +18,10 @@ Run `lake env lean FdFormal/Verify.lean` to see the output.
 
 All declarations should depend only on `[propext, Classical.choice, Quot.sound]`
 with no `sorryAx`.
+
+## Tags
+
+verification, axioms, soundness
 -/
 
 -- Upstream candidate (GraphBall)
@@ -25,8 +30,19 @@ with no `sorryAx`.
 #print axioms SimpleGraph.ball_mono
 #print axioms SimpleGraph.center_mem_ball
 
--- Flower dimension theorems will be added here as they are proved:
--- #print axioms flower_edge_count
--- #print axioms flower_vertex_count
--- #print axioms flower_diam_eq
--- #print axioms flower_dimension
+-- Counting formulas (FlowerCounts)
+#print axioms flowerEdgeCount_eq_pow
+#print axioms flowerVertCount_eq
+#print axioms flowerVertCount_pos
+#print axioms flowerVertCount_lower
+#print axioms flowerVertCount_upper
+
+-- Hub distance (FlowerDiameter)
+#print axioms flowerHubDist_eq_pow
+#print axioms flowerHubDist_pos
+
+-- Hub vertices (FlowerGraph)
+#print axioms hub0_ne_hub1
+
+-- Headline theorem (FlowerDimension)
+#print axioms flowerDimension
