@@ -24,12 +24,13 @@ Supporting infrastructure (monotonicity, cast identities, log helpers) is
 in `FlowerCounts`, `FlowerDiameter`, and `FlowerLog`. Leaf lemmas are proved
 via a combination of human authoring and Aristotle automated proof search.
 
-**Upstream contribution:** `GraphBall.lean` defines `SimpleGraph.ball` via
-`edist` and contains 12 proved lemmas (membership, monotonicity, radius
-extremes, center membership, symmetry, adjacency, triangle inequality).
-A draft Mathlib PR is prepared (`docs/internal/pr-mathlib-ball-draft.md`);
-must post to Zulip before opening. Need to check overlap with PR #33077
-(`SetRel.ball` by Yael Dillies).
+**Upstream contribution:** `GraphBall.lean` defines `SimpleGraph.ball` as an
+open ball via `edist` (strict `<`, not `≤`). Reshaped per Zulip discussion and
+auditor feedback: 1 def + 7 core lemmas (`mem_ball`, `ball_zero`, `ball_one`,
+`ball_top`, `ball_mono`, `center_mem_ball`, `mem_ball_comm`) form the upstream
+PR; convenience lemmas kept in-repo.
+Import simplified to `Mathlib.Combinatorics.SimpleGraph.Metric`.
+`ball_top` now gives connected-component support. PR ready to open.
 
 ### Next
 
@@ -49,7 +50,7 @@ construction sketch with five layers:
 - Layer 1: `FlowerEdge u v g` (recursive edge index type) and
   `FlowerVert u v g` (hubs + sigma of internal vertices by generation).
 - Layer 2: `edgeEndpoints` via recursive gadget resolution, plus
-  `edgeSrc_ne_edgeTgt` (sorry stub).
+  `edgeSrc_ne_edgeTgt` (sorry stub; submitted to Aristotle Batch 1).
 - Layer 3: `flowerGraph'` as a `SimpleGraph` on `FlowerVert`, with
   `flowerAdj'` defined by edge existence.
 - Layer 4: Distance proof via upper bound (exhibited walk of length `u^g`)
@@ -59,6 +60,9 @@ construction sketch with five layers:
 - Layer 5: Transport to `Fin (flowerVertCount u v g)` via `Fintype.equivFinOfCardEq`,
   giving the final `flowerGraph_dist_hubs` bridge statement.
 - Projection map `FlowerVert.project` is defined (not sorry).
+
+**Aristotle Batch 1** submitted: `flowerEdge_card` and `edgeSrc_ne_edgeTgt`
+(running, results pending). These are leaf lemmas for Layers 1 and 2.
 
 Building block: `PathGraphDist.lean` provides fully proved lemmas for
 `SimpleGraph.pathGraph` distance (`pathGraph_dist`, `pathGraph_dist_zero_last`,

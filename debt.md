@@ -11,8 +11,10 @@
   `GadgetPos`, `LocalEdge`, recursive `FlowerEdge` edge indices,
   `edgeEndpoints` resolution, `FlowerVert` with hub embedding, `flowerGraph'`
   as `SimpleGraph`, projection map for lower bound, and `flowerGraph_dist_hubs`
-  as the F2 bridge target. Several sorry stubs remain (irreflexivity,
+  as the F2 bridge target. 8 sorry stubs remain (irreflexivity,
   connectivity, walk/distance bounds, vertex card, final transport).
+  Aristotle Batch 1 submitted for `flowerEdge_card` and `edgeSrc_ne_edgeTgt`
+  (running, results pending).
   *(FlowerConstruction.lean, FlowerGraph.lean)*
 
 - [ ] **Log-ratio dimension bridge** — Prove `HasLogRatioDimension` for the
@@ -22,13 +24,13 @@
 
 ### Upstream candidates
 
-- [ ] **SimpleGraph.ball PR** — Clean up GraphBall.lean for Mathlib PR.
-  Now has 12 lemmas (expanded API): `mem_ball`, `edist_le_of_mem_ball`,
-  `ball_zero`, `ball_top`, `ball_mono`, `ball_anti`, `center_mem_ball`,
-  `nonempty_ball`, `ball_comm`, `ball_one_eq`, `adj_of_mem_ball_one`,
-  `mem_ball_of_mem_ball_of_mem_ball`. Watch PR #33077 (Yael Dillies,
-  SetRel.ball) for potential overlap. Key reviewer: Rida Hamadani.
-  *(GraphBall.lean)*
+- [ ] **SimpleGraph.ball PR** — Reshaped per Zulip discussion and auditor
+  feedback: open ball (`<` not `≤`), 1 def + 7 core lemmas (`mem_ball`,
+  `ball_zero`, `ball_one`, `ball_top`, `ball_mono`, `center_mem_ball`,
+  `mem_ball_comm`). `ball_top` gives connected-component
+  support. Import simplified to `Mathlib.Combinatorics.SimpleGraph.Metric`.
+  Convenience lemmas kept in-repo for project use. **Ready to open PR.**
+  Key reviewer: Rida Hamadani. *(GraphBall.lean)*
 
 - [ ] **GraphBall finite cardinality lemmas** — `card_ball_mono` etc. require
   `[Fintype V]`. Separated from base definition by design. *(GraphBall.lean)*

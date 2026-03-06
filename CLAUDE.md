@@ -170,8 +170,8 @@ copyright headers on all `.lean` files.
 | `FlowerLog.lean` | Log identities + squeeze bounds | Proved |
 | `FlowerDimension.lean` | Headline theorem (squeeze limit) | Proved |
 | `FlowerLogRatio.lean` | HasLogRatioDimension definition | Definition only |
-| `GraphBall.lean` | SimpleGraph.ball (upstream candidate, 12 lemmas) | Proved |
-| `PathGraphDist.lean` | pathGraph distance (F2 building block) | Sorry stubs |
+| `GraphBall.lean` | SimpleGraph.ball open metric balls (upstream candidate) | Proved |
+| `PathGraphDist.lean` | pathGraph distance (upstream candidate) | Proved |
 | `FlowerConstruction.lean` | F2 bridge sketch (structured gadgets) | Sorry stubs |
 | `Verify.lean` | Axiom dashboard | Proved |
 

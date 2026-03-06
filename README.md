@@ -34,7 +34,7 @@ This is the ground truth formula that [navi-fractal](https://github.com/Project-
 
 | Declaration | File | Topic | Mathlib status |
 |-------------|------|-------|----------------|
-| `SimpleGraph.ball` + 11 lemmas | `GraphBall` | Metric ball via `edist` (basic API, 12 lemmas) | No `SimpleGraph.ball` in Mathlib |
+| `SimpleGraph.ball` + 7 core lemmas | `GraphBall` | Open metric ball via `edist` (8 core + convenience lemmas) | No `SimpleGraph.ball` in Mathlib; PR ready to open |
 
 ## Axiom boundary
 
@@ -60,7 +60,7 @@ lake build --wfail   # fail on any sorry or warning
 
 ```
 FdFormal/
-  GraphBall.lean         — SimpleGraph.ball via edist, 12 lemmas (upstream candidate)
+  GraphBall.lean         — SimpleGraph.ball (open ball via edist), 8 core + convenience lemmas (upstream candidate)
   FlowerGraph.lean       — Hub vertices and structural helpers
   FlowerCounts.lean      — Exact edge/vertex count formulas, bounds, monotonicity
   FlowerDiameter.lean    — Hub-distance scaling L_g = u^g, cast identities
