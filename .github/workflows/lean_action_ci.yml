@@ -1,0 +1,52 @@
+name: Lean CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  ELAN_HOME: /home/runner/.elan
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install elan and toolchain
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/917c18d0ad52f649c2603dc8b973f5b9fa5f8f43/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "${ELAN_HOME}/bin" >> "${GITHUB_PATH}"
+          export PATH="${ELAN_HOME}/bin:${PATH}"
+          elan --version
+          elan show
+
+      - name: Cache Lake build artifacts
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: .lake
+          key: lake-${{ hashFiles('lean-toolchain', 'lakefile.toml', 'lake-manifest.json') }}
+          restore-keys: lake-
+
+      - name: Get Mathlib cache
+        run: lake exe cache get || true
+
+      - name: Build (fail on sorry)
+        run: lake build --wfail
+
+      - name: Lint (Mathlib environment linters)
+        run: lake lint
+
+      - name: Check for sorry contamination
+        run: |
+          echo "Checking axiom dependencies..."
+          touch FdFormal/Verify.lean
+          lake env lean FdFormal/Verify.lean 2>&1 | tee verify_output.txt
+          if grep -q "sorryAx" verify_output.txt; then
+            echo "FATAL: sorryAx found in verified theorems!"
+            exit 1
+          fi
+          echo "No sorry contamination detected."
