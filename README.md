@@ -1,3 +1,10 @@
+[![CI](https://github.com/Project-Navi/fd-formalization/actions/workflows/lean_action_ci.yml/badge.svg)](https://github.com/Project-Navi/fd-formalization/actions/workflows/lean_action_ci.yml)
+![Lean v4.28.0](https://img.shields.io/badge/Lean-v4.28.0-blue)
+![Mathlib](https://img.shields.io/badge/Mathlib-dep-blue)
+![sorry-free](https://img.shields.io/badge/sorry--free-%E2%9C%93-brightgreen)
+![no custom axioms](https://img.shields.io/badge/custom%20axioms-0-brightgreen)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-orange)](LICENSE)
+
 # (u,v)-Flower Log-Ratio Convergence — Lean 4 Formalization
 
 Formal verification of the vertex-count / hub-distance log-ratio limit for the (u,v)-flower network family, from:

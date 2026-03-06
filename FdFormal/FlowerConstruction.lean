@@ -100,7 +100,11 @@ instance instFintypeFlowerEdge (u v g : ℕ) : Fintype (FlowerEdge u v g) := by
 /-- Edge count matches the arithmetic formula. -/
 theorem flowerEdge_card (u v g : ℕ) :
     Fintype.card (FlowerEdge u v g) = (u + v) ^ g := by
-  sorry
+  induction g with
+  | zero => simp [FlowerEdge]
+  | succ g ih =>
+    simp only [FlowerEdge, Fintype.card_prod, Fintype.card_sum, Fintype.card_fin, ih, pow_succ,
+      mul_comm]
 
 /-- Vertex type for the (u,v)-flower at generation `g`.
 
