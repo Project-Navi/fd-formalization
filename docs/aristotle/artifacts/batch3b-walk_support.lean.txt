@@ -1,0 +1,473 @@
+/-
+This file was edited by Aristotle (https://aristotle.harmonic.fun).
+
+Lean version: leanprover/lean4:v4.24.0
+Mathlib version: f897ebcf72cd16f89ab4577d0c826cd14afaafc7
+This project request had uuid: fb159c28-9b6b-43d4-a253-b2b845a7907c
+
+To cite Aristotle, tag @Aristotle-Harmonic on GitHub PRs/issues, and add as co-author to commits:
+Co-authored-by: Aristotle (Harmonic) <aristotle-harmonic@harmonic.fun>
+-/
+
+/-
+Copyright (c) 2026 Nelson Spence. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Nelson Spence
+-/
+/-
+Aristotle Batch 3B — Walk support lemmas
+
+Target: endpoint matching and adjacency bridge for the upper bound proof.
+These feed `flowerGraph'_walk_hubs` (walk of length u^g between hubs).
+
+Safe targets (case splits on localSrc/localTgt):
+  - edgeSrc_zero, edgeTgt_zero: base case endpoints
+  - short_tgt_eq_succ_src: consecutive short-path endpoints match
+  - short_first_eq_embed_src: first short-path position = embed(src)
+  - short_last_eq_embed_tgt: last short-path position = embed(tgt)
+  - long_tgt_eq_succ_src: consecutive long-path endpoints match
+  - long_first_eq_embed_src: first long-path position = embed(src)
+  - long_last_eq_embed_tgt: last long-path position = embed(tgt)
+  - flowerGraph'_adj_iff: bridge between flowerAdj' and flowerGraph'.Adj
+
+Stretch target (constructive walk object):
+  - gadget_short_walk: Walk of length u through gadget short path
+-/
+import Mathlib.Tactic
+import Mathlib.Combinatorics.SimpleGraph.Metric
+
+
+/- Aristotle failed to load this code into its environment. Double check that the syntax is correct.
+
+Invalid `⟨...⟩` notation: The expected type
+  ∀ (x : FlowerVert u v g), ¬flowerAdj' u v g x x
+is not an inductive type
+
+Note: This notation can only be used when the expected type is an inductive type with a single constructor-/
+set_option relaxedAutoImplicit false
+
+set_option autoImplicit false
+
+/-! ## Layer 0: Local replacement gadget -/
+
+inductive GadgetPos (u v : ℕ)
+  | src
+  | tgt
+  | short (i : Fin (u - 1))
+  | long  (j : Fin (v - 1))
+
+abbrev LocalEdge (u v : ℕ) := Fin u ⊕ Fin v
+
+def localSrc (u v : ℕ) : LocalEdge u v → GadgetPos u v
+  | .inl ⟨0, _⟩     => .src
+  | .inl ⟨i + 1, h⟩ => .short ⟨i, by omega⟩
+  | .inr ⟨0, _⟩     => .src
+  | .inr ⟨j + 1, h⟩ => .long ⟨j, by omega⟩
+
+def localTgt (u v : ℕ) : LocalEdge u v → GadgetPos u v
+  | .inl i => if h : i.val + 1 = u then .tgt else .short ⟨i.val, by omega⟩
+  | .inr j => if h : j.val + 1 = v then .tgt else .long ⟨j.val, by omega⟩
+
+/-! ## Layer 1: Types -/
+
+def FlowerEdge (u v : ℕ) : ℕ → Type
+  | 0     => Unit
+  | g + 1 => FlowerEdge u v g × LocalEdge u v
+
+instance instFintypeFlowerEdge (u v g : ℕ) : Fintype (FlowerEdge u v g) := by
+  induction g with
+  | zero => exact inferInstanceAs (Fintype Unit)
+  | succ g ih => exact inferInstanceAs (Fintype (_ × _))
+
+def FlowerVert (u v : ℕ) (g : ℕ) : Type :=
+  Fin 2 ⊕ Σ (k : Fin g), FlowerEdge u v k.val × (Fin (u - 1) ⊕ Fin (v - 1))
+
+instance instFintypeFlowerVert (u v g : ℕ) : Fintype (FlowerVert u v g) := by
+  unfold FlowerVert; infer_instance
+
+def FlowerVert.hub0 (u v g : ℕ) : FlowerVert u v g := .inl 0
+
+def FlowerVert.hub1 (u v g : ℕ) : FlowerVert u v g := .inl 1
+
+def FlowerVert.embed (u v g : ℕ) : FlowerVert u v g → FlowerVert u v (g + 1)
+  | .inl h => .inl h
+  | .inr ⟨k, e, pos⟩ => .inr ⟨k.castSucc, e, pos⟩
+
+/-! ## Layer 2: Edge endpoints -/
+
+def edgeEndpoints (u v : ℕ) :
+    (g : ℕ) → FlowerEdge u v g → FlowerVert u v g × FlowerVert u v g
+  | 0, () => (.hub0 u v 0, .hub1 u v 0)
+  | g + 1, (parent, localE) =>
+    let (pSrc, pTgt) := edgeEndpoints u v g parent
+    let resolve : GadgetPos u v → FlowerVert u v (g + 1) := fun
+      | .src     => FlowerVert.embed u v g pSrc
+      | .tgt     => FlowerVert.embed u v g pTgt
+      | .short i => .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl i⟩
+      | .long j  => .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr j⟩
+    (resolve (localSrc u v localE), resolve (localTgt u v localE))
+
+def edgeSrc (u v g : ℕ) (e : FlowerEdge u v g) : FlowerVert u v g :=
+  (edgeEndpoints u v g e).1
+
+def edgeTgt (u v g : ℕ) (e : FlowerEdge u v g) : FlowerVert u v g :=
+  (edgeEndpoints u v g e).2
+
+/-! ## Proved helpers (from FlowerConstruction.lean) -/
+
+theorem FlowerVert.hub0_ne_hub1 (u v g : ℕ) :
+    FlowerVert.hub0 u v g ≠ FlowerVert.hub1 u v g := by
+  unfold hub0 hub1; exact Sum.inl_injective.ne (by decide)
+
+theorem FlowerVert.embed_injective {u v g : ℕ} :
+    Function.Injective (FlowerVert.embed u v g) := by
+  intro x y hxy
+  cases x with
+  | inl a =>
+    cases y with
+    | inl _ =>
+      have := Sum.inl_injective hxy
+      exact congrArg Sum.inl this
+    | inr _ => simp [embed] at hxy
+  | inr a =>
+    cases y with
+    | inl _ => simp [embed] at hxy
+    | inr b =>
+      congr 1
+      have h := Sum.inr_injective hxy
+      have hfst : a.1.castSucc = b.1.castSucc := congr_arg Sigma.fst h
+      have hk : a.1 = b.1 := Fin.castSucc_injective _ hfst
+      cases a; cases b; simp only at hk; subst hk
+      simpa using h
+
+theorem FlowerVert.embed_ne_new {u v g : ℕ} (x : FlowerVert u v g)
+    (e : FlowerEdge u v g) (pos : Fin (u - 1) ⊕ Fin (v - 1)) :
+    FlowerVert.embed u v g x ≠
+      .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, e, pos⟩ := by
+  cases x with
+  | inl _ => simp [embed]
+  | inr val =>
+    intro h
+    have h := Sum.inr_injective h
+    have hk := congr_arg (fun s => (Sigma.fst s).val) h
+    simp only [Fin.val_castSucc] at hk
+    omega
+
+theorem localSrc_ne_localTgt (u v : ℕ) (_hu : 1 < u) (e : LocalEdge u v) :
+    localSrc u v e ≠ localTgt u v e := by
+  rcases e with (⟨⟨_ | i, hi⟩⟩ | ⟨⟨_ | j, hj⟩⟩) <;>
+    simp only [localSrc, localTgt] <;> (split_ifs <;> simp_all)
+
+theorem edgeSrc_ne_edgeTgt (u v g : ℕ) (hu : 1 < u) (e : FlowerEdge u v g) :
+    edgeSrc u v g e ≠ edgeTgt u v g e := by
+  induction g with
+  | zero => exact FlowerVert.hub0_ne_hub1 u v 0
+  | succ g ih =>
+    obtain ⟨parent, localE⟩ := e
+    have hpar := ih parent
+    have hloc := localSrc_ne_localTgt u v hu localE
+    simp only [edgeEndpoints, edgeSrc, edgeTgt] at hpar ⊢
+    rcases hs : localSrc u v localE with src | tgt | ⟨i⟩ | ⟨j⟩ <;>
+      rcases ht : localTgt u v localE with src | tgt | ⟨i'⟩ | ⟨j'⟩ <;>
+      simp only [hs, ht] at hloc ⊢
+    all_goals first
+      | exact absurd rfl hloc
+      | exact FlowerVert.embed_injective.ne hpar
+      | exact Ne.symm (FlowerVert.embed_injective.ne hpar)
+      | exact FlowerVert.embed_ne_new _ parent _
+      | exact Ne.symm (FlowerVert.embed_ne_new _ parent _)
+      | (intro h; have := Sum.inr_injective h; simp_all)
+
+theorem resolve_src_eq_embed_edgeSrc (u v g : ℕ) (parent : FlowerEdge u v g)
+    (localE : LocalEdge u v) (hs : localSrc u v localE = .src) :
+    edgeSrc u v (g + 1) (parent, localE) =
+      FlowerVert.embed u v g (edgeSrc u v g parent) := by
+  simp only [edgeSrc, edgeEndpoints, hs]
+
+theorem resolve_tgt_eq_embed_edgeTgt (u v g : ℕ) (parent : FlowerEdge u v g)
+    (localE : LocalEdge u v) (ht : localTgt u v localE = .tgt) :
+    edgeTgt u v (g + 1) (parent, localE) =
+      FlowerVert.embed u v g (edgeTgt u v g parent) := by
+  simp only [edgeTgt, edgeEndpoints, ht]
+
+/-! ## Layer 3: SimpleGraph -/
+
+def flowerAdj' (u v g : ℕ) (a b : FlowerVert u v g) : Prop :=
+  ∃ e : FlowerEdge u v g,
+    (a = edgeSrc u v g e ∧ b = edgeTgt u v g e) ∨
+    (b = edgeSrc u v g e ∧ a = edgeTgt u v g e)
+
+theorem resolve_localEdge_adj (u v g : ℕ) (parent : FlowerEdge u v g)
+    (localE : LocalEdge u v) :
+    flowerAdj' u v (g + 1)
+      (edgeSrc u v (g + 1) (parent, localE))
+      (edgeTgt u v (g + 1) (parent, localE)) :=
+  ⟨(parent, localE), Or.inl ⟨rfl, rfl⟩⟩
+
+theorem short_path_consecutive_adj (u v g : ℕ) (parent : FlowerEdge u v g)
+    (i : Fin u) :
+    flowerAdj' u v (g + 1)
+      (edgeSrc u v (g + 1) (parent, .inl i))
+      (edgeTgt u v (g + 1) (parent, .inl i)) :=
+  resolve_localEdge_adj u v g parent (.inl i)
+
+noncomputable def flowerGraph' (u v g : ℕ) (hu : 1 < u) :
+    SimpleGraph (FlowerVert u v g) := by
+  refine SimpleGraph.mk (flowerAdj' u v g) ?_ ?_
+  · intro a b ⟨e, h⟩; exact ⟨e, h.symm⟩
+  · exact ⟨fun a ⟨e, h⟩ => by
+      rcases h with ⟨h1, h2⟩ | ⟨h1, h2⟩ <;>
+        exact edgeSrc_ne_edgeTgt u v g hu e (h1 ▸ h2)⟩
+
+/-! ## Target lemmas -/
+
+/- Aristotle failed to load this code into its environment. Double check that the syntax is correct.
+
+Unknown identifier `FlowerVert.hub0`
+Function expected at
+  edgeSrc
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  u-/
+/-- Base case: source of the unique gen-0 edge is hub0. -/
+theorem edgeSrc_zero (u v : ℕ) :
+    edgeSrc u v 0 () = FlowerVert.hub0 u v 0 := by
+  sorry
+
+/- Aristotle failed to load this code into its environment. Double check that the syntax is correct.
+
+Unknown identifier `FlowerVert.hub1`
+Function expected at
+  edgeTgt
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  u-/
+/-- Base case: target of the unique gen-0 edge is hub1. -/
+theorem edgeTgt_zero (u v : ℕ) :
+    edgeTgt u v 0 () = FlowerVert.hub1 u v 0 := by
+  sorry
+
+/- Aristotle failed to load this code into its environment. Double check that the syntax is correct.
+
+Function expected at
+  FlowerEdge
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  u
+Function expected at
+  edgeTgt
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  u
+Function expected at
+  edgeSrc
+but this term has type
+  ?m.3
+
+Note: Expected a function because this term is being applied to the argument
+  u-/
+/-- Consecutive short-path edges share an endpoint: the target of edge i
+equals the source of edge i+1. This is the chain-link lemma for building
+the gadget walk. -/
+theorem short_tgt_eq_succ_src (u v g : ℕ) (parent : FlowerEdge u v g)
+    (i : Fin u) (hi : i.val + 1 < u) :
+    edgeTgt u v (g + 1) (parent, .inl i) =
+    edgeSrc u v (g + 1) (parent, .inl ⟨i.val + 1, hi⟩) := by
+  sorry
+
+/- Aristotle failed to load this code into its environment. Double check that the syntax is correct.
+
+Unknown identifier `FlowerVert.embed`
+Function expected at
+  FlowerEdge
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  u
+Function expected at
+  edgeSrc
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  u-/
+/-- First short-path source is the embedded parent source. -/
+theorem short_first_eq_embed_src (u v g : ℕ) (hu : 1 < u)
+    (parent : FlowerEdge u v g) :
+    edgeSrc u v (g + 1) (parent, .inl ⟨0, by omega⟩) =
+    FlowerVert.embed u v g (edgeSrc u v g parent) := by
+  sorry
+
+/- Aristotle failed to load this code into its environment. Double check that the syntax is correct.
+
+Unknown identifier `FlowerVert.embed`
+Function expected at
+  FlowerEdge
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  u
+Function expected at
+  edgeTgt
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  u-/
+/-- Last short-path target is the embedded parent target. -/
+theorem short_last_eq_embed_tgt (u v g : ℕ) (hu : 1 < u)
+    (parent : FlowerEdge u v g) :
+    edgeTgt u v (g + 1) (parent, .inl ⟨u - 1, by omega⟩) =
+    FlowerVert.embed u v g (edgeTgt u v g parent) := by
+  sorry
+
+/- Aristotle failed to load this code into its environment. Double check that the syntax is correct.
+
+Function expected at
+  FlowerEdge
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  u
+Function expected at
+  edgeTgt
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  u
+Function expected at
+  edgeSrc
+but this term has type
+  ?m.3
+
+Note: Expected a function because this term is being applied to the argument
+  u-/
+/-- Consecutive long-path edges share an endpoint. -/
+theorem long_tgt_eq_succ_src (u v g : ℕ) (parent : FlowerEdge u v g)
+    (j : Fin v) (hj : j.val + 1 < v) :
+    edgeTgt u v (g + 1) (parent, .inr j) =
+    edgeSrc u v (g + 1) (parent, .inr ⟨j.val + 1, hj⟩) := by
+  sorry
+
+/- Aristotle failed to load this code into its environment. Double check that the syntax is correct.
+
+Unknown identifier `FlowerVert.embed`
+Function expected at
+  FlowerEdge
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  u
+Function expected at
+  edgeSrc
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  u-/
+/-- First long-path source is the embedded parent source. -/
+theorem long_first_eq_embed_src (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
+    (parent : FlowerEdge u v g) :
+    edgeSrc u v (g + 1) (parent, .inr ⟨0, by omega⟩) =
+    FlowerVert.embed u v g (edgeSrc u v g parent) := by
+  sorry
+
+/- Aristotle failed to load this code into its environment. Double check that the syntax is correct.
+
+Unknown identifier `FlowerVert.embed`
+Function expected at
+  FlowerEdge
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  u
+Function expected at
+  edgeTgt
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  u-/
+/-- Last long-path target is the embedded parent target. -/
+theorem long_last_eq_embed_tgt (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
+    (parent : FlowerEdge u v g) :
+    edgeTgt u v (g + 1) (parent, .inr ⟨v - 1, by omega⟩) =
+    FlowerVert.embed u v g (edgeTgt u v g parent) := by
+  sorry
+
+/- Aristotle failed to load this code into its environment. Double check that the syntax is correct.
+
+Function expected at
+  FlowerVert
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  u
+Function expected at
+  FlowerVert
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  u
+Function expected at
+  flowerGraph'
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  u
+Function expected at
+  flowerAdj'
+but this term has type
+  ?m.3
+
+Note: Expected a function because this term is being applied to the argument
+  u-/
+/-- The adjacency relation of flowerGraph' is flowerAdj'. -/
+theorem flowerGraph'_adj_iff (u v g : ℕ) (hu : 1 < u)
+    (a b : FlowerVert u v g) :
+    (flowerGraph' u v g hu).Adj a b ↔ flowerAdj' u v g a b := by
+  sorry
+
+/- Aristotle failed to load this code into its environment. Double check that the syntax is correct.
+
+Function expected at
+  FlowerEdge
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  u
+Function expected at
+  flowerGraph'
+but this term has type
+  ?m.2
+
+Note: Expected a function because this term is being applied to the argument
+  u-/
+/-- **Stretch target.** There exists a walk of length exactly u through the
+short path of a replacement gadget, connecting the embedded source to the
+embedded target of the parent edge. -/
+theorem gadget_short_walk (u v g : ℕ) (hu : 1 < u)
+    (parent : FlowerEdge u v g) :
+    ∃ w : (flowerGraph' u v (g + 1) hu).Walk
+        (FlowerVert.embed u v g (edgeSrc u v g parent))
+        (FlowerVert.embed u v g (edgeTgt u v g parent)),
+      w.length = u := by
+  sorry

@@ -56,6 +56,51 @@ All proofs required significant rewrite for Lean 4.28.0 (`grind`, `exact?`,
 New import: `Mathlib.Algebra.BigOperators.Fin`.
 Artifacts: `artifacts/batch2{a,b,c}-*.lean.txt`.
 
+### Batch 3A (FlowerConstruction — projection atoms)
+
+| Lemma | Proved | Status |
+|-------|--------|--------|
+| `project_edgeSrc_succ` | Yes | Integrated |
+| `project_edgeTgt_succ` | Yes | Integrated |
+| `project_adj_or_eq` | Yes | Integrated |
+
+3 of 3 lemmas proved, including the stretch target `project_adj_or_eq`
+(which failed as `project_adj_or_eq` in Batch 2 — decomposing into
+micro-lemmas enabled success). All proofs rewritten for Lean 4.28.0.
+Artifacts: `artifacts/batch3a-projection_atoms.lean.txt`.
+
+### Batch 3B (FlowerConstruction — walk support)
+
+| Lemma | Proved | Status |
+|-------|--------|--------|
+| `edgeSrc_zero` | No | Environment load failure |
+| `edgeTgt_zero` | No | Environment load failure |
+| `short_tgt_eq_succ_src` | No | Environment load failure |
+| `short_first_eq_embed_src` | No | Environment load failure |
+| `short_last_eq_embed_tgt` | No | Environment load failure |
+| `long_tgt_eq_succ_src` | No | Environment load failure |
+| `long_first_eq_embed_src` | No | Environment load failure |
+| `long_last_eq_embed_tgt` | No | Environment load failure |
+| `flowerGraph'_adj_iff` | No | Environment load failure |
+| `gadget_short_walk` | No | Environment load failure |
+
+0 of 10 — complete environment load failure. The `flowerGraph'` definition
+using `⟨...⟩` for `Std.Irrefl` is valid on Lean 4.28.0 but not on
+Aristotle's 4.24.0, cascading to block all targets. All 10 lemmas
+proved by hand instead. Artifacts: `artifacts/batch3b-walk_support.lean.txt`.
+
+### Batch 3C (FlowerConstruction — gadget adjacency chain)
+
+| Lemma | Proved | Status |
+|-------|--------|--------|
+| `gadget_adj_chain` | Yes | Integrated |
+
+1 of 1 — `gadget_adj_chain` proved, providing the step-replacement
+engine for `flowerGraph'_walk_hubs`. Proof rewritten for Lean 4.28.0
+(`aesop` → targeted simp, `simp +decide` → `dif_pos`/`dif_neg`,
+`exact?` → explicit terms).
+Artifacts: `artifacts/batch3c-gadget_chain.lean.txt`.
+
 ## Files
 
 - `*_proved.lean` — Aristotle's output with proofs filled in (original campaign)
@@ -64,6 +109,8 @@ Artifacts: `artifacts/batch2{a,b,c}-*.lean.txt`.
 - `batch1-*.lean.txt` — Batch 1 Aristotle output (artifacts)
 - `batch2{a,b,c}-*.lean` — Batch 2 submission files (3 sub-batches)
 - `batch2{a,b,c}-*.lean.txt` — Batch 2 Aristotle output (artifacts)
+- `batch3{a,b,c}-*.lean` — Batch 3 submission files
+- `batch3{a,b,c}-*.lean.txt` — Batch 3 Aristotle output (artifacts)
 
 These files are outside the `FdFormal/` build tree and are **not compiled
 by `lake build`**. Do not rely on them for correctness claims.

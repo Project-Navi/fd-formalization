@@ -13,8 +13,8 @@
   as `SimpleGraph`, projection map for lower bound, and `flowerGraph_dist_hubs`
   as the F2 bridge target. 4 sorry stubs remain (connectivity,
   walk upper bound, distance lower bound, final transport to Fin).
-  Aristotle Batches 1-2 integrated: irreflexivity, edge/vertex card, gadget
-  adjacency, and projection lemmas all proved.
+  Aristotle Batches 1-3 integrated: irreflexivity, edge/vertex card, gadget
+  adjacency, endpoint matching, and projection lemmas all proved.
   *(FlowerConstruction.lean, FlowerGraph.lean)*
 
 - [ ] **Log-ratio dimension bridge** — Prove `HasLogRatioDimension` for the
