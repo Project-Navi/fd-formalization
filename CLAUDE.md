@@ -172,7 +172,7 @@ copyright headers on all `.lean` files.
 | `FlowerLogRatio.lean` | HasLogRatioDimension definition | Definition only |
 | `GraphBall.lean` | SimpleGraph.ball open metric balls (upstream candidate) | Proved |
 | `PathGraphDist.lean` | pathGraph distance (upstream candidate) | Proved |
-| `FlowerConstruction.lean` | F2 bridge sketch (structured gadgets) | Sorry stubs |
+| `FlowerConstruction.lean` | F2 bridge (structured gadgets) | 5 sorry stubs (valid SimpleGraph proved) |
 | `Verify.lean` | Axiom dashboard | Proved |
 
 ## Workflow rules
