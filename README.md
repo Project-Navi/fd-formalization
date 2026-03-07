@@ -75,7 +75,7 @@ FdFormal/
   FlowerLogRatio.lean    — HasLogRatioDimension definition (bridge target)
   FlowerDimension.lean   — Headline theorem: log-ratio limit = log(u+v) / log(u)
   PathGraphDist.lean     — pathGraph distance lemmas (all proofs complete)
-  FlowerConstruction.lean — F2 bridge construction (sketch, exploratory)
+  FlowerConstruction.lean — F2 bridge construction (4 sorry stubs remaining)
   Verify.lean            — #print axioms dashboard (17 declarations)
 ```
 

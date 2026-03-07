@@ -11,10 +11,10 @@
   `GadgetPos`, `LocalEdge`, recursive `FlowerEdge` edge indices,
   `edgeEndpoints` resolution, `FlowerVert` with hub embedding, `flowerGraph'`
   as `SimpleGraph`, projection map for lower bound, and `flowerGraph_dist_hubs`
-  as the F2 bridge target. 8 sorry stubs remain (irreflexivity,
-  connectivity, walk/distance bounds, vertex card, final transport).
-  Aristotle Batch 1 submitted for `flowerEdge_card` and `edgeSrc_ne_edgeTgt`
-  (running, results pending).
+  as the F2 bridge target. 4 sorry stubs remain (connectivity,
+  walk upper bound, distance lower bound, final transport to Fin).
+  Aristotle Batches 1-2 integrated: irreflexivity, edge/vertex card, gadget
+  adjacency, and projection lemmas all proved.
   *(FlowerConstruction.lean, FlowerGraph.lean)*
 
 - [ ] **Log-ratio dimension bridge** — Prove `HasLogRatioDimension` for the
