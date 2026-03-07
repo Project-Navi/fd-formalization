@@ -6,6 +6,7 @@ Authors: Nelson Spence
 import FdFormal.FlowerCounts
 import FdFormal.FlowerDiameter
 import FdFormal.FlowerGraph
+import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Combinatorics.SimpleGraph.Hasse
 import Mathlib.Combinatorics.SimpleGraph.Metric
 
@@ -15,8 +16,9 @@ set_option autoImplicit false
 /-!
 # (u,v)-Flower Graph Construction — SKETCH v2
 
-**Status: Exploratory.** Design sketch for the F2 bridge, following
-the structured-gadget approach. Proofs are stubbed with `sorry`.
+**Status: In progress.** Structured-gadget approach for the F2 bridge.
+Vertex cardinality, gadget adjacency, and projection lemmas proved.
+4 sorry stubs remain: connectivity, walk bounds, distance, final transport.
 
 ## Main definitions
 
@@ -30,6 +32,12 @@ the structured-gadget approach. Proofs are stubbed with `sorry`.
 
 ## Main statements
 
+- `flowerVert_card` — vertex count matches arithmetic recurrence
+- `gadgetInternal_card` — internal vertex count per gadget
+- `resolve_localEdge_adj` — local edge creates adjacency
+- `project_embed` — projection is left inverse of embed
+- `project_hub0`, `project_hub1` — projection preserves hubs
+- `project_new` — new vertices project to parent source
 - `flowerGraph'_dist_hubs` — hub distance equals `u^g` (sorry stubs)
 - `flowerGraph_dist_hubs` — F2 bridge on `Fin` (sorry stub)
 
@@ -237,6 +245,22 @@ theorem edgeSrc_ne_edgeTgt (u v g : ℕ) (hu : 1 < u) (e : FlowerEdge u v g) :
       | exact Ne.symm (FlowerVert.embed_ne_new _ parent _)
       | (intro h; have := Sum.inr_injective h; simp_all)
 
+/-- The resolved source of a gadget edge matches the embedded source
+of its parent edge. -/
+theorem resolve_src_eq_embed_edgeSrc (u v g : ℕ) (parent : FlowerEdge u v g)
+    (localE : LocalEdge u v) (hs : localSrc u v localE = .src) :
+    edgeSrc u v (g + 1) (parent, localE) =
+      FlowerVert.embed u v g (edgeSrc u v g parent) := by
+  simp only [edgeSrc, edgeEndpoints, hs]
+
+/-- The resolved target of a gadget edge matches the embedded target
+of its parent edge. -/
+theorem resolve_tgt_eq_embed_edgeTgt (u v g : ℕ) (parent : FlowerEdge u v g)
+    (localE : LocalEdge u v) (ht : localTgt u v localE = .tgt) :
+    edgeTgt u v (g + 1) (parent, localE) =
+      FlowerVert.embed u v g (edgeTgt u v g parent) := by
+  simp only [edgeTgt, edgeEndpoints, ht]
+
 /-! ## Layer 3: SimpleGraph -/
 
 /-- Adjacency: vertices `a` and `b` are adjacent iff there exists an edge
@@ -245,6 +269,30 @@ def flowerAdj' (u v g : ℕ) (a b : FlowerVert u v g) : Prop :=
   ∃ e : FlowerEdge u v g,
     (a = edgeSrc u v g e ∧ b = edgeTgt u v g e) ∨
     (b = edgeSrc u v g e ∧ a = edgeTgt u v g e)
+
+/-- A local edge in a gadget creates an adjacency in `flowerAdj'`. -/
+theorem resolve_localEdge_adj (u v g : ℕ) (parent : FlowerEdge u v g)
+    (localE : LocalEdge u v) :
+    flowerAdj' u v (g + 1)
+      (edgeSrc u v (g + 1) (parent, localE))
+      (edgeTgt u v (g + 1) (parent, localE)) :=
+  ⟨(parent, localE), Or.inl ⟨rfl, rfl⟩⟩
+
+/-- Consecutive short-path positions are adjacent. -/
+theorem short_path_consecutive_adj (u v g : ℕ) (parent : FlowerEdge u v g)
+    (i : Fin u) :
+    flowerAdj' u v (g + 1)
+      (edgeSrc u v (g + 1) (parent, .inl i))
+      (edgeTgt u v (g + 1) (parent, .inl i)) :=
+  resolve_localEdge_adj u v g parent (.inl i)
+
+/-- Consecutive long-path positions are adjacent. -/
+theorem long_path_consecutive_adj (u v g : ℕ) (parent : FlowerEdge u v g)
+    (j : Fin v) :
+    flowerAdj' u v (g + 1)
+      (edgeSrc u v (g + 1) (parent, .inr j))
+      (edgeTgt u v (g + 1) (parent, .inr j)) :=
+  resolve_localEdge_adj u v g parent (.inr j)
 
 /-- The (u,v)-flower as a `SimpleGraph` on `FlowerVert`.
 Construction requires `edgeSrc_ne_edgeTgt` for irreflexivity. -/
@@ -302,10 +350,26 @@ theorem flowerGraph'_dist_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
 
 /-! ## Layer 5: Transport to Fin and final bridge -/
 
-/-- Vertex count matches. -/
+/-- Internal vertex count per gadget: `(u-1) + (v-1) = u + v - 2`. -/
+theorem gadgetInternal_card (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+    Fintype.card (Fin (u - 1) ⊕ Fin (v - 1)) = u + v - 2 := by
+  simp only [Fintype.card_sum, Fintype.card_fin]
+  omega
+
+/-- Vertex count matches the arithmetic recurrence. -/
 theorem flowerVert_card (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     Fintype.card (FlowerVert u v g) = flowerVertCount u v g := by
-  sorry
+  induction g with
+  | zero =>
+    simp [FlowerVert, Fintype.card_sum, Fintype.card_fin]
+  | succ g ih =>
+    simp only [FlowerVert, Fintype.card_sum, Fintype.card_sigma, Fintype.card_prod,
+      Fintype.card_fin] at ih ⊢
+    rw [Fin.sum_univ_castSucc]
+    simp only [Fin.coe_castSucc, Fin.val_last]
+    rw [flowerVertCount_succ, flowerEdgeCount_eq_pow, ← flowerEdge_card u v g,
+      gadgetInternal_card u v hu huv]
+    omega
 
 /-- Equivalence to `Fin (flowerVertCount u v g)`. -/
 noncomputable def flowerVertEquiv (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
@@ -360,3 +424,31 @@ def FlowerVert.project (u v g : ℕ) : FlowerVert u v (g + 1) → FlowerVert u v
       -- k.val = g (since k : Fin (g+1) and k.val ≥ g means k.val = g)
       have hk : k.val = g := by omega
       edgeSrc u v g (hk ▸ e)
+
+/-- Project is a left inverse of embed: projecting an embedded vertex
+recovers the original. -/
+theorem FlowerVert.project_embed (u v g : ℕ) (x : FlowerVert u v g) :
+    FlowerVert.project u v g (FlowerVert.embed u v g x) = x := by
+  cases x with
+  | inl _ => rfl
+  | inr val =>
+    obtain ⟨k, e, pos⟩ := val
+    simp only [FlowerVert.embed, FlowerVert.project, Fin.val_castSucc, dif_pos k.isLt,
+      Fin.eta]
+
+/-- Hub 0 projects to hub 0. -/
+theorem FlowerVert.project_hub0 (u v g : ℕ) :
+    FlowerVert.project u v g (.hub0 u v (g + 1)) = .hub0 u v g := rfl
+
+/-- Hub 1 projects to hub 1. -/
+theorem FlowerVert.project_hub1 (u v g : ℕ) :
+    FlowerVert.project u v g (.hub1 u v (g + 1)) = .hub1 u v g := rfl
+
+/-- A new vertex at generation g projects to the source endpoint of its
+parent edge. -/
+theorem FlowerVert.project_new (u v g : ℕ) (parent : FlowerEdge u v g)
+    (pos : Fin (u - 1) ⊕ Fin (v - 1)) :
+    FlowerVert.project u v g
+      (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, pos⟩) =
+    edgeSrc u v g parent := by
+  simp [FlowerVert.project, show ¬(g < g) from lt_irrefl g]
