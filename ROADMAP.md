@@ -15,10 +15,18 @@
 | ID | Target | Statement | Repo |
 |----|--------|-----------|------|
 | F1 | Flower log-ratio theorem | `Tendsto (fun g => log N_g / log L_g) atTop (nhds (log(u+v) / log u))` | `fd-formalization` |
+| F2 | Hub distance bridge | `(flowerGraph u v g).dist hub0 hub1 = u^g` | `fd-formalization` |
 
-This is the theorem we actually have. It proves vertex-count / hub-distance
-log-ratio convergence for the **arithmetic** (u,v)-flower model. It is not yet
-a formal theorem about graph box-counting dimension.
+**F1** proves vertex-count / hub-distance log-ratio convergence for the
+**arithmetic** (u,v)-flower model via Route B (squeeze).
+
+**F2** constructs the (u,v)-flower as an explicit `SimpleGraph` on
+`FlowerVert` / `Fin` and proves the graph-theoretic hub distance equals `u^g`.
+The proof uses a structured-gadget approach with five layers: local gadget
+(`GadgetPos`, `LocalEdge`), recursive types (`FlowerEdge`, `FlowerVert`),
+endpoint resolution (`edgeEndpoints`), `SimpleGraph` construction
+(`flowerGraph'`), rank-based lower bound + walk upper bound, and transport
+to `Fin` via `Fintype.equivFinOfCardEq`.
 
 Supporting infrastructure (monotonicity, cast identities, log helpers) is
 in `FlowerCounts`, `FlowerDiameter`, and `FlowerLog`. Leaf lemmas are proved
@@ -36,38 +44,7 @@ Import simplified to `Mathlib.Combinatorics.SimpleGraph.Metric`.
 
 | ID | Target | Prerequisites | Repo |
 |----|--------|---------------|------|
-| F2 | `flowerHubDist` to `SimpleGraph.dist` bridge | Concrete graph model, hub identification, shortest-walk proof | `fd-formalization` |
 | F3 | `HasLogRatioDimension` for the flower family | F1 + F2 | `fd-formalization` |
-
-**F2** is the narrower bridge: define `flowerGraph u v g : SimpleGraph (Fin (flowerVertCount u v g))`
-and prove `(flowerGraph u v g).dist (hub0 u v g) (hub1 u v g) = flowerHubDist u v g`.
-
-**F2 design status:** `FlowerConstruction.lean` contains a structured-gadget
-construction sketch with five layers:
-
-- Layer 0: `GadgetPos` inductive and `LocalEdge = Fin u ⊕ Fin v` for the
-  replacement gadget, with `localSrc`/`localTgt`.
-- Layer 1: `FlowerEdge u v g` (recursive edge index type) and
-  `FlowerVert u v g` (hubs + sigma of internal vertices by generation).
-- Layer 2: `edgeEndpoints` via recursive gadget resolution, plus
-  `edgeSrc_ne_edgeTgt` (sorry stub; submitted to Aristotle Batch 1).
-- Layer 3: `flowerGraph'` as a `SimpleGraph` on `FlowerVert`, with
-  `flowerAdj'` defined by edge existence.
-- Layer 4: Distance proof via upper bound (exhibited walk of length `u^g`)
-  and lower bound (projection argument). `flowerGraph'_dist_hubs` assembles
-  these into the equality. Statement proved modulo sorry stubs in the
-  sub-lemmas.
-- Layer 5: Transport to `Fin (flowerVertCount u v g)` via `Fintype.equivFinOfCardEq`,
-  giving the final `flowerGraph_dist_hubs` bridge statement.
-- Projection map `FlowerVert.project` is defined (not sorry).
-
-**Aristotle Batch 1** submitted: `flowerEdge_card` and `edgeSrc_ne_edgeTgt`
-(running, results pending). These are leaf lemmas for Layers 1 and 2.
-
-Building block: `PathGraphDist.lean` provides fully proved lemmas for
-`SimpleGraph.pathGraph` distance (`pathGraph_dist`, `pathGraph_dist_zero_last`,
-`pathGraph_edist_zero_last`). These have no Mathlib counterpart and are a
-candidate for a second upstream PR.
 
 **F3** is the target theorem: `HasLogRatioDimension (flowerGraph u v) (hub0 u v) (hub1 u v) (log(u+v)/log u)`.
 The definition `HasLogRatioDimension` is in `FlowerLogRatio.lean` (adapted from
@@ -118,10 +95,9 @@ in the experimental repos with benchmark suites and statistical validation.
 
 ### Phase A: Finish the flower story honestly
 
-1. Keep **F1** as the current flagship.
-2. Do **F2** next — the `SimpleGraph.edist` bridge is the narrowest path
-   from arithmetic model to graph-theoretic object.
-3. Do **F3** to earn the right to say "formalized fractal dimension" without caveat.
+1. **F1** shipped — log-ratio convergence.
+2. **F2** shipped — `SimpleGraph.dist` bridge.
+3. Do **F3** next — combines F1 + F2 to earn `HasLogRatioDimension`.
 
 ### Phase B: Build the CD hard core (separate lane)
 

@@ -20,7 +20,7 @@ lim   log |V_g| / log L_g  =  ln(u + v) / ln(u)    for 1 < u ≤ v
 g→∞
 ```
 
-In the physics literature (Rozenfeld et al. 2007), this quantity equals the box-counting fractal dimension `d_B`. **This formalization proves the log-ratio convergence; a formal bridge to a box-counting definition is not yet built** (see `debt.md`).
+In the physics literature (Rozenfeld et al. 2007), this quantity equals the box-counting fractal dimension `d_B`. This formalization proves the log-ratio convergence **and** that the hub distance in the explicit `SimpleGraph` construction equals `u^g` (see F2 bridge below). A formal bridge to a box-counting dimension definition is future work (see `debt.md`).
 
 This is the ground truth formula that [navi-fractal](https://github.com/Project-Navi/navi-fractal) calibrates its sandbox dimension estimates against (see the calibration table in that project's README).
 
@@ -34,6 +34,9 @@ This is the ground truth formula that [navi-fractal](https://github.com/Project-
 | Monotonicity | `flowerVertCount_strict_mono` etc. | `FlowerCounts`/`FlowerDiameter` | `N_g`, `E_g`, `L_g` strictly increasing |
 | Hub distance | `flowerHubDist_eq_pow` | `FlowerDiameter` | `L_g = u^g` |
 | Hub vertices | `hub0`, `hub1` | `FlowerGraph` | Distinguished vertices |
+| Graph construction | `flowerGraph'`, `flowerGraph` | `FlowerConstruction` | Explicit `SimpleGraph` on `FlowerVert` / `Fin` |
+| Connectivity | `flowerGraph'_connected` | `FlowerConstruction` | Flower graph is connected |
+| **F2 bridge** | **`flowerGraph_dist_hubs`** | **`FlowerConstruction`** | **`SimpleGraph.dist hub0 hub1 = u^g`** |
 | Log identities | `log_flowerHubDist_eq` etc. | `FlowerLog` | `log L_g = g · log u` |
 | **Log-ratio limit** | **`flowerDimension`** | **`FlowerDimension`** | **`lim log N_g / log L_g = log(u+v) / log(u)`** |
 
@@ -47,7 +50,7 @@ This is the ground truth formula that [navi-fractal](https://github.com/Project-
 
 **Zero custom axioms.** All results proved from Mathlib primitives. The `#print axioms` dashboard in `Verify.lean` confirms every declaration depends only on `[propext, Classical.choice, Quot.sound]` with no `sorryAx`.
 
-The log-ratio theorem uses pure arithmetic recurrences for vertex count and hub distance — no `SimpleGraph` construction is in the critical path. A bridge theorem connecting `flowerHubDist` to `SimpleGraph.edist` on an explicit graph model, and further to a formal box-counting dimension definition, is deferred (see `debt.md`).
+The log-ratio theorem uses pure arithmetic recurrences for vertex count and hub distance. The F2 bridge (`flowerGraph_dist_hubs`) additionally proves that `SimpleGraph.dist` on the explicit graph construction equals `u^g`, connecting the arithmetic formula to graph-theoretic distance. A formal box-counting dimension definition remains future work (see `debt.md`).
 
 ## Hypotheses
 
@@ -75,7 +78,7 @@ FdFormal/
   FlowerLogRatio.lean    — HasLogRatioDimension definition (bridge target)
   FlowerDimension.lean   — Headline theorem: log-ratio limit = log(u+v) / log(u)
   PathGraphDist.lean     — pathGraph distance lemmas (all proofs complete)
-  FlowerConstruction.lean — F2 bridge construction (4 sorry stubs remaining)
+  FlowerConstruction.lean — F2 bridge: SimpleGraph construction + dist = u^g (fully proved)
   Verify.lean            — #print axioms dashboard (17 declarations)
 ```
 

@@ -2,24 +2,12 @@
 
 ## Open
 
-### Deferred graph realization
+### Deferred bridges
 
-- [ ] **SimpleGraph realization + edist bridge** — The log-ratio theorem uses
-  pure arithmetic recurrences. A bridge theorem should connect `flowerHubDist`
-  to `SimpleGraph.edist` on an explicit graph model. **Design progress:**
-  `FlowerConstruction.lean` implements a structured-gadget approach with
-  `GadgetPos`, `LocalEdge`, recursive `FlowerEdge` edge indices,
-  `edgeEndpoints` resolution, `FlowerVert` with hub embedding, `flowerGraph'`
-  as `SimpleGraph`, projection map for lower bound, and `flowerGraph_dist_hubs`
-  as the F2 bridge target. 4 sorry stubs remain (connectivity,
-  walk upper bound, distance lower bound, final transport to Fin).
-  Aristotle Batches 1-3 integrated: irreflexivity, edge/vertex card, gadget
-  adjacency, endpoint matching, and projection lemmas all proved.
-  *(FlowerConstruction.lean, FlowerGraph.lean)*
-
-- [ ] **Log-ratio dimension bridge** — Prove `HasLogRatioDimension` for the
-  (u,v)-flower family. Definition exists in `FlowerLogRatio.lean`. Requires
-  the SimpleGraph realization above; then F3 follows from F1 + distance bridge.
+- [ ] **Log-ratio dimension bridge (F3)** — Prove `HasLogRatioDimension` for
+  the (u,v)-flower family. Definition exists in `FlowerLogRatio.lean`.
+  `flowerGraph_dist_hubs` (F2) now provides the distance bridge; F3 follows
+  from combining F1 (log-ratio limit) + F2 (graph distance = u^g).
   *(FlowerLogRatio.lean)*
 
 ### Upstream candidates
@@ -53,6 +41,15 @@
   independent proof validation. *(lean_action_ci.yml)*
 
 ## Resolved
+
+- [x] **SimpleGraph realization + distance bridge (F2)** —
+  `FlowerConstruction.lean` fully proved. Structured-gadget approach with
+  recursive `FlowerEdge` edge indices, `edgeEndpoints` resolution, connectivity
+  (`flowerGraph'_connected`), rank-based lower bound (`rank_edge_bounds` →
+  `walk_length_ge_rank` → `flowerGraph'_dist_ge`), walk upper bound
+  (`lift_walk` → `flowerGraph'_walk_hubs`), and comap transport to `Fin`
+  (`flowerGraph_dist_hubs`). Zero sorry.
+  *(FlowerConstruction.lean)*
 
 - [x] **Counting formulas** — `flowerEdgeCount_eq_pow`, `flowerVertCount_eq`,
   positivity, and two-sided bounds all proved. Real-valued wrappers included.

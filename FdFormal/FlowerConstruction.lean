@@ -16,10 +16,9 @@ set_option autoImplicit false
 /-!
 # (u,v)-Flower Graph Construction
 
-**Status: In progress.** Structured-gadget approach for the F2 bridge.
-Vertex cardinality, gadget adjacency, endpoint matching, and projection
-lemmas all proved. 4 sorry stubs remain: connectivity, walk bounds,
-distance, final transport.
+Structured-gadget approach for the F2 bridge theorem: the (u,v)-flower
+graph on `Fin` has hub distance `u^g`. All definitions and theorems are
+fully proved with zero sorry.
 
 ## Main definitions
 
@@ -45,8 +44,9 @@ distance, final transport.
 - `project_edgeTgt_succ` — target projects to parent source or target
 - `gadget_adj_chain` — u+1 vertex chain through short path of gadget
 - `project_adj_or_eq` — adjacency preserved or collapsed under projection
-- `flowerGraph'_dist_hubs` — hub distance equals `u^g` (sorry stubs)
-- `flowerGraph_dist_hubs` — F2 bridge on `Fin` (sorry stub)
+- `flowerGraph'_connected` — connectivity of the flower graph
+- `flowerGraph'_dist_hubs` — hub distance equals `u^g`
+- `flowerGraph_dist_hubs` — F2 bridge on `Fin`
 
 ## Implementation notes
 
@@ -224,6 +224,14 @@ def edgeSrc (u v g : ℕ) (e : FlowerEdge u v g) : FlowerVert u v g :=
 /-- Target endpoint of an edge. -/
 def edgeTgt (u v g : ℕ) (e : FlowerEdge u v g) : FlowerVert u v g :=
   (edgeEndpoints u v g e).2
+
+/-- Fold `(edgeEndpoints ...).1` to `edgeSrc`. -/
+@[simp] theorem edgeEndpoints_fst (u v g : ℕ) (e : FlowerEdge u v g) :
+    (edgeEndpoints u v g e).1 = edgeSrc u v g e := rfl
+
+/-- Fold `(edgeEndpoints ...).2` to `edgeTgt`. -/
+@[simp] theorem edgeEndpoints_snd (u v g : ℕ) (e : FlowerEdge u v g) :
+    (edgeEndpoints u v g e).2 = edgeTgt u v g e := rfl
 
 /-- Base case: source of the unique gen-0 edge is hub0. -/
 theorem edgeSrc_zero (u v : ℕ) :
@@ -471,7 +479,7 @@ theorem lift_walk (u v g : ℕ) (hu : 1 < u) {a b : FlowerVert u v g}
 At gen 0, the single edge gives a walk of length 1 = u^0.
 At gen g+1, `lift_walk` replaces each edge with a gadget short path
 (length u), giving total length u * u^g = u^(g+1). -/
-theorem flowerGraph'_walk_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+theorem flowerGraph'_walk_hubs (u v g : ℕ) (hu : 1 < u) :
     ∃ w : (flowerGraph' u v g hu).Walk (.hub0 u v g) (.hub1 u v g),
       w.length = u ^ g := by
   induction g with
@@ -483,32 +491,336 @@ theorem flowerGraph'_walk_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     obtain ⟨w', hw'⟩ := lift_walk u v g hu w
     exact ⟨w', by rw [hw', hw, pow_succ, Nat.mul_comm]⟩
 
+/-- Every new short-path vertex is reachable from the embedded source of its
+parent edge, by chaining through the short-path adjacencies. -/
+theorem new_short_reachable (u v g : ℕ) (hu : 1 < u)
+    (parent : FlowerEdge u v g) (i : Fin (u - 1)) :
+    (flowerGraph' u v (g + 1) hu).Reachable
+      (FlowerVert.embed u v g (edgeSrc u v g parent))
+      (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl i⟩) := by
+  suffices h : ∀ n (hn : n < u - 1),
+      (flowerGraph' u v (g + 1) hu).Reachable
+        (FlowerVert.embed u v g (edgeSrc u v g parent))
+        (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl ⟨n, hn⟩⟩) from
+    h i.val i.isLt
+  intro n
+  induction n with
+  | zero =>
+    intro _
+    have hadj : (flowerGraph' u v (g + 1) hu).Adj
+        (edgeSrc u v (g + 1) (parent, .inl ⟨0, by omega⟩))
+        (edgeTgt u v (g + 1) (parent, .inl ⟨0, by omega⟩)) :=
+      short_path_consecutive_adj u v g parent ⟨0, by omega⟩
+    rw [short_first_eq_embed_src u v g hu parent] at hadj
+    convert hadj.reachable using 1
+    simp only [edgeTgt, edgeEndpoints, localTgt, dif_neg (by omega : ¬(0 + 1 = u))]
+  | succ m ih =>
+    intro hm
+    have hadj : (flowerGraph' u v (g + 1) hu).Adj
+        (edgeSrc u v (g + 1) (parent, .inl ⟨m + 1, by omega⟩))
+        (edgeTgt u v (g + 1) (parent, .inl ⟨m + 1, by omega⟩)) :=
+      short_path_consecutive_adj u v g parent ⟨m + 1, by omega⟩
+    have hsrc : edgeSrc u v (g + 1) (parent, .inl ⟨m + 1, by omega⟩) =
+        .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl ⟨m, by omega⟩⟩ := by
+      simp only [edgeSrc, edgeEndpoints, localSrc]
+    have htgt : edgeTgt u v (g + 1) (parent, .inl ⟨m + 1, by omega⟩) =
+        .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl ⟨m + 1, by omega⟩⟩ := by
+      simp only [edgeTgt, edgeEndpoints, localTgt,
+        dif_neg (show ¬(m + 1 + 1 = u) by omega)]
+    rw [hsrc, htgt] at hadj
+    exact (ih (by omega)).trans hadj.reachable
+
+/-- Every new long-path vertex is reachable from the embedded source of its
+parent edge, by chaining through the long-path adjacencies. -/
+theorem new_long_reachable (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
+    (parent : FlowerEdge u v g) (j : Fin (v - 1)) :
+    (flowerGraph' u v (g + 1) hu).Reachable
+      (FlowerVert.embed u v g (edgeSrc u v g parent))
+      (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr j⟩) := by
+  suffices h : ∀ n (hn : n < v - 1),
+      (flowerGraph' u v (g + 1) hu).Reachable
+        (FlowerVert.embed u v g (edgeSrc u v g parent))
+        (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr ⟨n, hn⟩⟩) from
+    h j.val j.isLt
+  intro n
+  induction n with
+  | zero =>
+    intro _
+    have hadj : (flowerGraph' u v (g + 1) hu).Adj
+        (edgeSrc u v (g + 1) (parent, .inr ⟨0, by omega⟩))
+        (edgeTgt u v (g + 1) (parent, .inr ⟨0, by omega⟩)) :=
+      long_path_consecutive_adj u v g parent ⟨0, by omega⟩
+    rw [long_first_eq_embed_src u v g hu huv parent] at hadj
+    convert hadj.reachable using 1
+    simp only [edgeTgt, edgeEndpoints, localTgt, dif_neg (by omega : ¬(0 + 1 = v))]
+  | succ m ih =>
+    intro hm
+    have hadj : (flowerGraph' u v (g + 1) hu).Adj
+        (edgeSrc u v (g + 1) (parent, .inr ⟨m + 1, by omega⟩))
+        (edgeTgt u v (g + 1) (parent, .inr ⟨m + 1, by omega⟩)) :=
+      long_path_consecutive_adj u v g parent ⟨m + 1, by omega⟩
+    have hsrc : edgeSrc u v (g + 1) (parent, .inr ⟨m + 1, by omega⟩) =
+        .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr ⟨m, by omega⟩⟩ := by
+      simp only [edgeSrc, edgeEndpoints, localSrc]
+    have htgt : edgeTgt u v (g + 1) (parent, .inr ⟨m + 1, by omega⟩) =
+        .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr ⟨m + 1, by omega⟩⟩ := by
+      simp only [edgeTgt, edgeEndpoints, localTgt,
+        dif_neg (show ¬(m + 1 + 1 = v) by omega)]
+    rw [hsrc, htgt] at hadj
+    exact (ih (by omega)).trans hadj.reachable
+
 /-- The flower graph is connected. -/
 theorem flowerGraph'_connected (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     (flowerGraph' u v g hu).Connected := by
-  sorry
+  rw [SimpleGraph.connected_iff_exists_forall_reachable]
+  use .hub0 u v g
+  induction g with
+  | zero =>
+    intro z
+    cases z with
+    | inl h =>
+      fin_cases h
+      · exact .rfl
+      · exact SimpleGraph.Adj.reachable (show (flowerGraph' u v 0 hu).Adj _ _ from
+          ⟨(), Or.inl ⟨rfl, rfl⟩⟩)
+    | inr s => exact s.1.elim0
+  | succ g ih =>
+    have embed_reach : ∀ x : FlowerVert u v g,
+        (flowerGraph' u v (g + 1) hu).Reachable
+          (.hub0 u v (g + 1)) (FlowerVert.embed u v g x) := by
+      intro x
+      obtain ⟨w⟩ := ih x
+      exact (lift_walk u v g hu w).choose.reachable
+    intro z
+    cases z with
+    | inl h => fin_cases h <;> [exact .rfl; exact embed_reach (.hub1 u v g)]
+    | inr s =>
+      obtain ⟨k, parent, pos⟩ := s
+      by_cases hk : k.val < g
+      · -- Old vertex = embed of gen-g vertex
+        have : (.inr (⟨k, parent, pos⟩ : Σ (k : Fin (g + 1)),
+            FlowerEdge u v k.val × _) : FlowerVert u v (g + 1)) =
+            FlowerVert.embed u v g (.inr ⟨⟨k.val, hk⟩, parent, pos⟩) := by
+          simp [FlowerVert.embed]
+        rw [this]; exact embed_reach _
+      · -- New vertex at gen g
+        have hkv : k.val = g := by omega
+        have hkg : k = ⟨g, Nat.lt_succ_of_le le_rfl⟩ := Fin.ext hkv
+        subst hkg
+        exact (embed_reach (edgeSrc u v g parent)).trans (by
+          cases pos with
+          | inl i => exact new_short_reachable u v g hu parent i
+          | inr j => exact new_long_reachable u v g hu huv parent j)
 
-/-- **Lower bound**: every walk between hubs has length ≥ u^g.
+/-! ## Rank function (1-Lipschitz potential for lower bound)
 
-Proof idea (inductive via projection): Define a projection map that
-collapses each gadget to a single edge, turning a gen g+1 walk into
-a gen g walk. Key observation: any walk segment that enters a gadget
-at one endpoint and exits at the other must traverse ≥ u edges (the
-short path is the minimum). Therefore:
+The rank function assigns each vertex a "coarse position" from hub0 to hub1.
+It satisfies `rank(hub0) = 0`, `rank(hub1) = u^g`, and adjacent vertices
+differ by at most 1. This gives the lower bound on hub distance immediately.
 
-  walk length at gen g+1 ≥ u × (projected walk length at gen g)
+For embedded vertices: `rank(embed x) = u * rank_g(x)`.
+For new short-path vertices: `rank = u * srcR + (i+1)` if the parent edge
+has distinct endpoint ranks, else `u * srcR` (flat gadget).
+For new long-path vertices: floor-division interpolation `u * srcR + ((j+1)*u)/v`
+if interpolating, else `u * srcR`. -/
 
-By induction, walk length ≥ u × u^g = u^(g+1). -/
+/-- Floor-division adjacency: consecutive multiples divided by `v` differ
+by at most 1 when `u ≤ v`. -/
+theorem div_succ_le (k u v : ℕ) (huv : u ≤ v) (hv : 0 < v) :
+    ((k + 1) * u) / v ≤ (k * u) / v + 1 := by
+  rw [Nat.add_one_mul]
+  calc (k * u + u) / v ≤ (k * u + v) / v :=
+        Nat.div_le_div_right (Nat.add_le_add_left huv _)
+    _ = k * u / v + 1 := Nat.add_div_right _ hv
+
+/-- Rank: coarse position from hub0 (rank 0) to hub1 (rank u^g). -/
+def FlowerVert.rank (u v : ℕ) : (g : ℕ) → FlowerVert u v g → ℕ
+  | 0, .inl ⟨0, _⟩ => 0
+  | 0, .inl ⟨1, _⟩ => 1
+  | 0, .inl ⟨n + 2, h⟩ => absurd h (by omega)
+  | 0, .inr ⟨k, _, _⟩ => absurd k.isLt (by omega)
+  | g + 1, .inl h => u * rank u v g (.inl h)
+  | g + 1, .inr ⟨k, parent, pos⟩ =>
+    if hk : k.val < g then
+      u * rank u v g (.inr ⟨⟨k.val, hk⟩, parent, pos⟩)
+    else
+      have hkg : k.val = g := by omega
+      let parent' : FlowerEdge u v g := hkg ▸ parent
+      let srcR := rank u v g (edgeSrc u v g parent')
+      let tgtR := rank u v g (edgeTgt u v g parent')
+      if srcR = tgtR then u * srcR
+      else match pos with
+        | .inl i => u * srcR + (i.val + 1)
+        | .inr j => u * srcR + ((j.val + 1) * u) / v
+
+/-- Hub 0 has rank 0. -/
+theorem rank_hub0 (u v g : ℕ) :
+    FlowerVert.rank u v g (.hub0 u v g) = 0 := by
+  induction g with
+  | zero => rfl
+  | succ g ih =>
+    change u * FlowerVert.rank u v g (.hub0 u v g) = 0
+    rw [ih, Nat.mul_zero]
+
+/-- Hub 1 has rank u^g. -/
+theorem rank_hub1 (u v g : ℕ) :
+    FlowerVert.rank u v g (.hub1 u v g) = u ^ g := by
+  induction g with
+  | zero => rfl
+  | succ g ih =>
+    change u * FlowerVert.rank u v g (.hub1 u v g) = u ^ (g + 1)
+    rw [ih, pow_succ, Nat.mul_comm]
+
+/-- Rank of an embedded vertex scales by `u`. -/
+theorem rank_embed (u v g : ℕ) (x : FlowerVert u v g) :
+    FlowerVert.rank u v (g + 1) (FlowerVert.embed u v g x) =
+      u * FlowerVert.rank u v g x := by
+  cases x with
+  | inl h => rfl
+  | inr val =>
+    obtain ⟨k, parent, pos⟩ := val
+    simp only [FlowerVert.embed, FlowerVert.rank, Fin.val_castSucc, dif_pos k.isLt, Fin.eta]
+
+/-- Rank of a new short-path vertex at generation g. -/
+theorem rank_new_short (u v g : ℕ) (parent : FlowerEdge u v g) (i : Fin (u - 1)) :
+    FlowerVert.rank u v (g + 1)
+      (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl i⟩) =
+    if FlowerVert.rank u v g (edgeSrc u v g parent) =
+        FlowerVert.rank u v g (edgeTgt u v g parent)
+    then u * FlowerVert.rank u v g (edgeSrc u v g parent)
+    else u * FlowerVert.rank u v g (edgeSrc u v g parent) + (i.val + 1) := by
+  simp only [FlowerVert.rank, dif_neg (by omega : ¬(g < g))]
+
+/-- Rank of a new long-path vertex at generation g. -/
+theorem rank_new_long (u v g : ℕ) (parent : FlowerEdge u v g) (j : Fin (v - 1)) :
+    FlowerVert.rank u v (g + 1)
+      (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr j⟩) =
+    if FlowerVert.rank u v g (edgeSrc u v g parent) =
+        FlowerVert.rank u v g (edgeTgt u v g parent)
+    then u * FlowerVert.rank u v g (edgeSrc u v g parent)
+    else u * FlowerVert.rank u v g (edgeSrc u v g parent) +
+      ((j.val + 1) * u) / v := by
+  simp only [FlowerVert.rank, dif_neg (by omega : ¬(g < g))]
+
+/-- Rank bounds along edges: non-decreasing and 1-Lipschitz.
+Both bounds are proved simultaneously by induction, since the monotonicity
+proof for the last short/long edge uses the Lipschitz bound at gen g. -/
+theorem rank_edge_bounds (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
+    (e : FlowerEdge u v g) :
+    FlowerVert.rank u v g (edgeSrc u v g e) ≤
+      FlowerVert.rank u v g (edgeTgt u v g e) ∧
+    FlowerVert.rank u v g (edgeTgt u v g e) ≤
+      FlowerVert.rank u v g (edgeSrc u v g e) + 1 := by
+  induction g with
+  | zero =>
+    obtain ⟨⟩ := e
+    simp [edgeSrc, edgeTgt, edgeEndpoints, FlowerVert.rank, FlowerVert.hub0, FlowerVert.hub1]
+  | succ g ih =>
+    obtain ⟨parent, localE⟩ := e
+    obtain ⟨ihle, ihub⟩ := ih parent
+    -- Helper: in the non-flat case, tgtR = srcR + 1
+    have htgt_eq : ¬(FlowerVert.rank u v g (edgeSrc u v g parent) =
+        FlowerVert.rank u v g (edgeTgt u v g parent)) →
+        FlowerVert.rank u v g (edgeTgt u v g parent) =
+        FlowerVert.rank u v g (edgeSrc u v g parent) + 1 :=
+      fun h => Nat.le_antisymm ihub (Nat.succ_le_of_lt (Nat.lt_of_le_of_ne ihle h))
+    -- Unfold everything, split all ifs
+    -- Case split on local edge, unfold endpoints and rank.
+    -- rank_embed handles stuck `rank(embed x)` for abstract x.
+    -- ← edgeSrc/edgeTgt normalizes (edgeEndpoints...).1/.2 so htgt_eq matches.
+    rcases localE with ⟨⟨_ | n, hi⟩⟩ | ⟨⟨_ | n, hj⟩⟩ <;>
+      simp only [edgeSrc, edgeTgt, edgeEndpoints, localSrc, localTgt,
+        FlowerVert.rank, dif_neg (lt_irrefl g)] <;>
+      split_ifs <;>
+      simp only [FlowerVert.rank, rank_embed,
+        edgeEndpoints_fst, edgeEndpoints_snd,
+        dif_neg (lt_irrefl g)] <;>
+      (try split_ifs) <;>
+      simp only [edgeEndpoints_fst, edgeEndpoints_snd, Nat.zero_add] at * <;>
+      first
+      | exact ⟨le_rfl, Nat.le_succ _⟩
+      | exact ⟨Nat.le_add_right _ _, le_rfl⟩
+      | (constructor <;> omega)
+      | (constructor
+         · exact Nat.le_add_right _ _
+         · have : (1 * u) / v ≤ 1 := Nat.div_le_of_le_mul (by omega); omega)
+      | (constructor
+         · exact Nat.add_le_add_left
+             (Nat.div_le_div_right (Nat.mul_le_mul_right u (by omega))) _
+         · exact Nat.add_le_add_left (div_succ_le (n + 1) u v huv (by omega)) _)
+      | contradiction
+      | (have h_eq : FlowerVert.rank u v g (edgeSrc u v g parent) =
+            FlowerVert.rank u v g (edgeTgt u v g parent) := ‹_›
+         rw [h_eq]; exact ⟨le_rfl, Nat.le_succ _⟩)
+      | (have h := htgt_eq ‹_›; rw [h, mul_add, mul_one]
+         constructor <;> linarith)
+      | (have h := htgt_eq ‹_›; rw [h, mul_add, mul_one]
+         constructor
+         · exact Nat.add_le_add_left (Nat.div_le_of_le_mul (by
+             nlinarith [Nat.mul_le_mul_left u (show n + 1 ≤ v from by omega),
+               mul_comm (n + 1) u])) _
+         · suffices u - 1 ≤ (n + 1) * u / v by omega
+           calc u - 1 = (u - 1) * v / v :=
+                 (Nat.mul_div_cancel (u - 1) (show 0 < v from by omega)).symm
+             _ ≤ (n + 1) * u / v := Nat.div_le_div_right (by
+                 zify [show 1 ≤ u from by omega, show 1 ≤ v from by omega] at *
+                 nlinarith))
+
+/-- Rank is non-decreasing along edges: rank(edgeSrc) ≤ rank(edgeTgt). -/
+theorem rank_edgeSrc_le_edgeTgt (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
+    (e : FlowerEdge u v g) :
+    FlowerVert.rank u v g (edgeSrc u v g e) ≤
+      FlowerVert.rank u v g (edgeTgt u v g e) :=
+  (rank_edge_bounds u v g hu huv e).1
+
+/-- Rank increases by at most 1 along edges. -/
+theorem rank_edgeTgt_le_edgeSrc_succ (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
+    (e : FlowerEdge u v g) :
+    FlowerVert.rank u v g (edgeTgt u v g e) ≤
+      FlowerVert.rank u v g (edgeSrc u v g e) + 1 :=
+  (rank_edge_bounds u v g hu huv e).2
+
+/-- Adjacent vertices satisfy `rank b ≤ rank a + 1`. -/
+theorem rank_adj_le (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
+    (a b : FlowerVert u v g) (hab : flowerAdj' u v g a b) :
+    FlowerVert.rank u v g b ≤ FlowerVert.rank u v g a + 1 := by
+  obtain ⟨e, he⟩ := hab
+  rcases he with ⟨ha, hb⟩ | ⟨hb, ha⟩ <;> subst ha <;> subst hb
+  · exact rank_edgeTgt_le_edgeSrc_succ u v g hu huv e
+  · exact Nat.le_succ_of_le (rank_edgeSrc_le_edgeTgt u v g hu huv e)
+
+/-- Walk length bounds rank difference (one-sided). -/
+theorem walk_length_ge_rank (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
+    {a b : FlowerVert u v g}
+    (w : (flowerGraph' u v g hu).Walk a b) :
+    FlowerVert.rank u v g b ≤ FlowerVert.rank u v g a + w.length := by
+  induction w with
+  | nil => omega
+  | cons hab tail ih =>
+    have hadj := rank_adj_le u v g hu huv _ _ hab
+    simp only [SimpleGraph.Walk.length_cons]
+    omega
+
+/-- **Lower bound**: hub distance ≥ u^g.
+
+Uses the rank function as a 1-Lipschitz potential: any walk from hub0
+(rank 0) to hub1 (rank u^g) has length ≥ u^g. -/
 theorem flowerGraph'_dist_ge (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     u ^ g ≤ (flowerGraph' u v g hu).dist (.hub0 u v g) (.hub1 u v g) := by
-  sorry
+  obtain ⟨w, hw⟩ := flowerGraph'_walk_hubs u v g hu
+  have hreach : (flowerGraph' u v g hu).Reachable (.hub0 u v g) (.hub1 u v g) :=
+    ⟨w⟩
+  obtain ⟨p, hp⟩ := hreach.exists_walk_length_eq_dist
+  have := walk_length_ge_rank u v g hu huv p
+  rw [rank_hub0, rank_hub1] at this
+  omega
 
 /-- **F2 bridge on FlowerVert**: hub distance = u^g. -/
 theorem flowerGraph'_dist_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     (flowerGraph' u v g hu).dist (.hub0 u v g) (.hub1 u v g) = u ^ g := by
   apply le_antisymm
   · -- Upper: from the exhibited walk
-    obtain ⟨w, hw⟩ := flowerGraph'_walk_hubs u v g hu huv
+    obtain ⟨w, hw⟩ := flowerGraph'_walk_hubs u v g hu
     exact hw ▸ (flowerGraph' u v g hu).dist_le w
   · -- Lower: from projection
     exact flowerGraph'_dist_ge u v g hu huv
@@ -553,8 +865,38 @@ theorem flowerGraph_dist_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
       ((flowerVertEquiv u v g hu huv) (.hub0 u v g))
       ((flowerVertEquiv u v g hu huv) (.hub1 u v g))
     = flowerHubDist u v g := by
-  -- Rewrite flowerHubDist as u^g, then use flowerGraph'_dist_hubs + comap
-  sorry
+  set e := flowerVertEquiv u v g hu huv
+  rw [flowerHubDist_eq_pow, ← flowerGraph'_dist_hubs u v g hu huv]
+  -- Goal: flowerGraph.dist (e hub0) (e hub1) = flowerGraph'.dist hub0 hub1
+  -- flowerGraph = flowerGraph'.comap e.symm, so e.symm is the comap hom
+  set G := flowerGraph' u v g hu
+  set G' := flowerGraph u v g hu huv
+  -- e.symm is a hom G' →g G (by comap definition)
+  have hom_back : ∀ {a b : Fin _}, G'.Adj a b → G.Adj (e.symm a) (e.symm b) :=
+    fun h => h
+  -- e is a hom G →g G' (comap + cancel)
+  have hom_fwd : ∀ {a b}, G.Adj a b → G'.Adj (e a) (e b) := by
+    intro a b h
+    change G.Adj (e.symm (e a)) (e.symm (e b))
+    simp only [Equiv.symm_apply_apply]; exact h
+  apply le_antisymm
+  · -- ≤: walk in G maps to walk in G'
+    obtain ⟨w, hw⟩ := (flowerGraph'_connected u v g hu huv).exists_walk_length_eq_dist
+      (.hub0 u v g) (.hub1 u v g)
+    calc G'.dist (e (.hub0 u v g)) (e (.hub1 u v g))
+        ≤ (w.map ⟨e, @hom_fwd⟩).length := SimpleGraph.dist_le _
+      _ = w.length := SimpleGraph.Walk.length_map _ _
+      _ = _ := hw
+  · -- ≥: walk in G' maps to walk in G (e.symm preserves adjacency)
+    have hreach : G'.Reachable (e (.hub0 u v g)) (e (.hub1 u v g)) := by
+      obtain ⟨w, _⟩ := flowerGraph'_walk_hubs u v g hu
+      exact (w.map ⟨e, @hom_fwd⟩).reachable
+    obtain ⟨w', hw'⟩ := hreach.exists_walk_length_eq_dist
+    calc G.dist _ _ ≤ ((w'.map ⟨e.symm, @hom_back⟩).copy
+          (e.symm_apply_apply _) (e.symm_apply_apply _)).length := SimpleGraph.dist_le _
+      _ = w'.length := by
+          rw [SimpleGraph.Walk.length_copy, SimpleGraph.Walk.length_map]
+      _ = G'.dist _ _ := hw'
 
 /-! ## Projection map (for lower bound proof)
 
