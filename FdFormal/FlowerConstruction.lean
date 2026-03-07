@@ -188,7 +188,7 @@ theorem FlowerVert.embed_ne_new {u v g : ℕ} (x : FlowerVert u v g)
 
 /-- Within a single gadget, source and target positions are always distinct
 when `1 < u`. -/
-theorem localSrc_ne_localTgt (u v : ℕ) (_hu : 1 < u) (e : LocalEdge u v) :
+theorem localSrc_ne_localTgt (u v : ℕ) (e : LocalEdge u v) :
     localSrc u v e ≠ localTgt u v e := by
   rcases e with (⟨⟨_ | i, hi⟩⟩ | ⟨⟨_ | j, hj⟩⟩) <;>
     simp only [localSrc, localTgt] <;> (split_ifs <;> simp_all)
@@ -242,14 +242,14 @@ theorem edgeTgt_zero (u v : ℕ) :
     edgeTgt u v 0 () = FlowerVert.hub1 u v 0 := rfl
 
 /-- Source ≠ target for every edge. (Needed for `SimpleGraph.loopless`.) -/
-theorem edgeSrc_ne_edgeTgt (u v g : ℕ) (hu : 1 < u) (e : FlowerEdge u v g) :
+theorem edgeSrc_ne_edgeTgt (u v g : ℕ) (e : FlowerEdge u v g) :
     edgeSrc u v g e ≠ edgeTgt u v g e := by
   induction g with
   | zero => exact FlowerVert.hub0_ne_hub1 u v 0
   | succ g ih =>
     obtain ⟨parent, localE⟩ := e
     have hpar := ih parent
-    have hloc := localSrc_ne_localTgt u v hu localE
+    have hloc := localSrc_ne_localTgt u v localE
     simp only [edgeEndpoints, edgeSrc, edgeTgt] at hpar ⊢
     -- Case-split on localSrc/localTgt values
     rcases hs : localSrc u v localE with src | tgt | ⟨i⟩ | ⟨j⟩ <;>
@@ -399,7 +399,7 @@ theorem gadget_adj_chain (u v g : ℕ) (hu : 1 < u)
 
 /-- The (u,v)-flower as a `SimpleGraph` on `FlowerVert`.
 Construction requires `edgeSrc_ne_edgeTgt` for irreflexivity. -/
-noncomputable def flowerGraph' (u v g : ℕ) (hu : 1 < u) :
+noncomputable def flowerGraph' (u v g : ℕ) :
     SimpleGraph (FlowerVert u v g) := by
   refine SimpleGraph.mk (flowerAdj' u v g) ?_ ?_
   · -- symmetry
@@ -407,12 +407,12 @@ noncomputable def flowerGraph' (u v g : ℕ) (hu : 1 < u) :
   · -- irreflexivity
     exact ⟨fun a ⟨e, h⟩ => by
       rcases h with ⟨h1, h2⟩ | ⟨h1, h2⟩ <;>
-        exact edgeSrc_ne_edgeTgt u v g hu e (h1 ▸ h2)⟩
+        exact edgeSrc_ne_edgeTgt u v g e (h1 ▸ h2)⟩
 
 /-- The adjacency relation of `flowerGraph'` is `flowerAdj'`. -/
-theorem flowerGraph'_adj_iff (u v g : ℕ) (hu : 1 < u)
+theorem flowerGraph'_adj_iff (u v g : ℕ)
     (a b : FlowerVert u v g) :
-    (flowerGraph' u v g hu).Adj a b ↔ flowerAdj' u v g a b := by
+    (flowerGraph' u v g).Adj a b ↔ flowerAdj' u v g a b := by
   constructor
   · exact id
   · exact id
@@ -423,14 +423,14 @@ theorem flowerGraph'_adj_iff (u v g : ℕ) (hu : 1 < u)
 Converts the vertex chain from `gadget_adj_chain` into a `SimpleGraph.Walk`. -/
 theorem gadget_short_walk (u v g : ℕ) (hu : 1 < u)
     (parent : FlowerEdge u v g) :
-    ∃ w : (flowerGraph' u v (g + 1) hu).Walk
+    ∃ w : (flowerGraph' u v (g + 1)).Walk
         (FlowerVert.embed u v g (edgeSrc u v g parent))
         (FlowerVert.embed u v g (edgeTgt u v g parent)),
       w.length = u := by
   obtain ⟨vertices, h0, hlast, hadj⟩ := gadget_adj_chain u v g hu parent
   rw [← h0, ← hlast]
   suffices ∀ k (hk : k ≤ u),
-      ∃ w : (flowerGraph' u v (g + 1) hu).Walk
+      ∃ w : (flowerGraph' u v (g + 1)).Walk
           (vertices 0) (vertices ⟨k, by omega⟩),
         w.length = k from this u le_rfl
   intro k hk
@@ -445,8 +445,8 @@ theorem gadget_short_walk (u v g : ℕ) (hu : 1 < u)
 /-- Adjacent vertices in gen `g` are connected by a walk of length `u`
 in gen `g+1` (through the replacement gadget's short path). -/
 theorem adj_lift (u v g : ℕ) (hu : 1 < u) (a b : FlowerVert u v g)
-    (hab : (flowerGraph' u v g hu).Adj a b) :
-    ∃ w : (flowerGraph' u v (g + 1) hu).Walk
+    (hab : (flowerGraph' u v g).Adj a b) :
+    ∃ w : (flowerGraph' u v (g + 1)).Walk
         (FlowerVert.embed u v g a) (FlowerVert.embed u v g b),
       w.length = u := by
   obtain ⟨e, he⟩ := hab
@@ -460,8 +460,8 @@ theorem adj_lift (u v g : ℕ) (hu : 1 < u) (a b : FlowerVert u v g)
 /-- Lift a gen-`g` walk to gen `g+1` by replacing each edge with a gadget
 short path. The resulting walk has length `u * w.length`. -/
 theorem lift_walk (u v g : ℕ) (hu : 1 < u) {a b : FlowerVert u v g}
-    (w : (flowerGraph' u v g hu).Walk a b) :
-    ∃ w' : (flowerGraph' u v (g + 1) hu).Walk
+    (w : (flowerGraph' u v g).Walk a b) :
+    ∃ w' : (flowerGraph' u v (g + 1)).Walk
         (FlowerVert.embed u v g a) (FlowerVert.embed u v g b),
       w'.length = u * w.length := by
   induction w with
@@ -480,11 +480,11 @@ At gen 0, the single edge gives a walk of length 1 = u^0.
 At gen g+1, `lift_walk` replaces each edge with a gadget short path
 (length u), giving total length u * u^g = u^(g+1). -/
 theorem flowerGraph'_walk_hubs (u v g : ℕ) (hu : 1 < u) :
-    ∃ w : (flowerGraph' u v g hu).Walk (.hub0 u v g) (.hub1 u v g),
+    ∃ w : (flowerGraph' u v g).Walk (.hub0 u v g) (.hub1 u v g),
       w.length = u ^ g := by
   induction g with
   | zero =>
-    exact ⟨.cons (⟨(), Or.inl ⟨rfl, rfl⟩⟩ : (flowerGraph' u v 0 hu).Adj _ _) .nil,
+    exact ⟨.cons (⟨(), Or.inl ⟨rfl, rfl⟩⟩ : (flowerGraph' u v 0).Adj _ _) .nil,
       by simp [SimpleGraph.Walk.length]⟩
   | succ g ih =>
     obtain ⟨w, hw⟩ := ih
@@ -495,11 +495,11 @@ theorem flowerGraph'_walk_hubs (u v g : ℕ) (hu : 1 < u) :
 parent edge, by chaining through the short-path adjacencies. -/
 theorem new_short_reachable (u v g : ℕ) (hu : 1 < u)
     (parent : FlowerEdge u v g) (i : Fin (u - 1)) :
-    (flowerGraph' u v (g + 1) hu).Reachable
+    (flowerGraph' u v (g + 1)).Reachable
       (FlowerVert.embed u v g (edgeSrc u v g parent))
       (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl i⟩) := by
   suffices h : ∀ n (hn : n < u - 1),
-      (flowerGraph' u v (g + 1) hu).Reachable
+      (flowerGraph' u v (g + 1)).Reachable
         (FlowerVert.embed u v g (edgeSrc u v g parent))
         (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl ⟨n, hn⟩⟩) from
     h i.val i.isLt
@@ -507,7 +507,7 @@ theorem new_short_reachable (u v g : ℕ) (hu : 1 < u)
   induction n with
   | zero =>
     intro _
-    have hadj : (flowerGraph' u v (g + 1) hu).Adj
+    have hadj : (flowerGraph' u v (g + 1)).Adj
         (edgeSrc u v (g + 1) (parent, .inl ⟨0, by omega⟩))
         (edgeTgt u v (g + 1) (parent, .inl ⟨0, by omega⟩)) :=
       short_path_consecutive_adj u v g parent ⟨0, by omega⟩
@@ -516,7 +516,7 @@ theorem new_short_reachable (u v g : ℕ) (hu : 1 < u)
     simp only [edgeTgt, edgeEndpoints, localTgt, dif_neg (by omega : ¬(0 + 1 = u))]
   | succ m ih =>
     intro hm
-    have hadj : (flowerGraph' u v (g + 1) hu).Adj
+    have hadj : (flowerGraph' u v (g + 1)).Adj
         (edgeSrc u v (g + 1) (parent, .inl ⟨m + 1, by omega⟩))
         (edgeTgt u v (g + 1) (parent, .inl ⟨m + 1, by omega⟩)) :=
       short_path_consecutive_adj u v g parent ⟨m + 1, by omega⟩
@@ -534,11 +534,11 @@ theorem new_short_reachable (u v g : ℕ) (hu : 1 < u)
 parent edge, by chaining through the long-path adjacencies. -/
 theorem new_long_reachable (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
     (parent : FlowerEdge u v g) (j : Fin (v - 1)) :
-    (flowerGraph' u v (g + 1) hu).Reachable
+    (flowerGraph' u v (g + 1)).Reachable
       (FlowerVert.embed u v g (edgeSrc u v g parent))
       (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr j⟩) := by
   suffices h : ∀ n (hn : n < v - 1),
-      (flowerGraph' u v (g + 1) hu).Reachable
+      (flowerGraph' u v (g + 1)).Reachable
         (FlowerVert.embed u v g (edgeSrc u v g parent))
         (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr ⟨n, hn⟩⟩) from
     h j.val j.isLt
@@ -546,7 +546,7 @@ theorem new_long_reachable (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
   induction n with
   | zero =>
     intro _
-    have hadj : (flowerGraph' u v (g + 1) hu).Adj
+    have hadj : (flowerGraph' u v (g + 1)).Adj
         (edgeSrc u v (g + 1) (parent, .inr ⟨0, by omega⟩))
         (edgeTgt u v (g + 1) (parent, .inr ⟨0, by omega⟩)) :=
       long_path_consecutive_adj u v g parent ⟨0, by omega⟩
@@ -555,7 +555,7 @@ theorem new_long_reachable (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
     simp only [edgeTgt, edgeEndpoints, localTgt, dif_neg (by omega : ¬(0 + 1 = v))]
   | succ m ih =>
     intro hm
-    have hadj : (flowerGraph' u v (g + 1) hu).Adj
+    have hadj : (flowerGraph' u v (g + 1)).Adj
         (edgeSrc u v (g + 1) (parent, .inr ⟨m + 1, by omega⟩))
         (edgeTgt u v (g + 1) (parent, .inr ⟨m + 1, by omega⟩)) :=
       long_path_consecutive_adj u v g parent ⟨m + 1, by omega⟩
@@ -571,7 +571,7 @@ theorem new_long_reachable (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
 
 /-- The flower graph is connected. -/
 theorem flowerGraph'_connected (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
-    (flowerGraph' u v g hu).Connected := by
+    (flowerGraph' u v g).Connected := by
   rw [SimpleGraph.connected_iff_exists_forall_reachable]
   use .hub0 u v g
   induction g with
@@ -581,12 +581,12 @@ theorem flowerGraph'_connected (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     | inl h =>
       fin_cases h
       · exact .rfl
-      · exact SimpleGraph.Adj.reachable (show (flowerGraph' u v 0 hu).Adj _ _ from
+      · exact SimpleGraph.Adj.reachable (show (flowerGraph' u v 0).Adj _ _ from
           ⟨(), Or.inl ⟨rfl, rfl⟩⟩)
     | inr s => exact s.1.elim0
   | succ g ih =>
     have embed_reach : ∀ x : FlowerVert u v g,
-        (flowerGraph' u v (g + 1) hu).Reachable
+        (flowerGraph' u v (g + 1)).Reachable
           (.hub0 u v (g + 1)) (FlowerVert.embed u v g x) := by
       intro x
       obtain ⟨w⟩ := ih x
@@ -792,7 +792,7 @@ theorem rank_adj_le (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
 /-- Walk length bounds rank difference (one-sided). -/
 theorem walk_length_ge_rank (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
     {a b : FlowerVert u v g}
-    (w : (flowerGraph' u v g hu).Walk a b) :
+    (w : (flowerGraph' u v g).Walk a b) :
     FlowerVert.rank u v g b ≤ FlowerVert.rank u v g a + w.length := by
   induction w with
   | nil => omega
@@ -806,9 +806,9 @@ theorem walk_length_ge_rank (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
 Uses the rank function as a 1-Lipschitz potential: any walk from hub0
 (rank 0) to hub1 (rank u^g) has length ≥ u^g. -/
 theorem flowerGraph'_dist_ge (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
-    u ^ g ≤ (flowerGraph' u v g hu).dist (.hub0 u v g) (.hub1 u v g) := by
+    u ^ g ≤ (flowerGraph' u v g).dist (.hub0 u v g) (.hub1 u v g) := by
   obtain ⟨w, hw⟩ := flowerGraph'_walk_hubs u v g hu
-  have hreach : (flowerGraph' u v g hu).Reachable (.hub0 u v g) (.hub1 u v g) :=
+  have hreach : (flowerGraph' u v g).Reachable (.hub0 u v g) (.hub1 u v g) :=
     ⟨w⟩
   obtain ⟨p, hp⟩ := hreach.exists_walk_length_eq_dist
   have := walk_length_ge_rank u v g hu huv p
@@ -817,11 +817,11 @@ theorem flowerGraph'_dist_ge (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
 
 /-- **F2 bridge on FlowerVert**: hub distance = u^g. -/
 theorem flowerGraph'_dist_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
-    (flowerGraph' u v g hu).dist (.hub0 u v g) (.hub1 u v g) = u ^ g := by
+    (flowerGraph' u v g).dist (.hub0 u v g) (.hub1 u v g) = u ^ g := by
   apply le_antisymm
   · -- Upper: from the exhibited walk
     obtain ⟨w, hw⟩ := flowerGraph'_walk_hubs u v g hu
-    exact hw ▸ (flowerGraph' u v g hu).dist_le w
+    exact hw ▸ (flowerGraph' u v g).dist_le w
   · -- Lower: from projection
     exact flowerGraph'_dist_ge u v g hu huv
 
@@ -857,7 +857,7 @@ noncomputable def flowerVertEquiv (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
 /-- The (u,v)-flower on `Fin`. -/
 noncomputable def flowerGraph (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     SimpleGraph (Fin (flowerVertCount u v g)) :=
-  (flowerGraph' u v g hu).comap (flowerVertEquiv u v g hu huv).symm
+  (flowerGraph' u v g).comap (flowerVertEquiv u v g hu huv).symm
 
 /-- **The F2 bridge theorem.** -/
 theorem flowerGraph_dist_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
@@ -869,7 +869,7 @@ theorem flowerGraph_dist_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
   rw [flowerHubDist_eq_pow, ← flowerGraph'_dist_hubs u v g hu huv]
   -- Goal: flowerGraph.dist (e hub0) (e hub1) = flowerGraph'.dist hub0 hub1
   -- flowerGraph = flowerGraph'.comap e.symm, so e.symm is the comap hom
-  set G := flowerGraph' u v g hu
+  set G := flowerGraph' u v g
   set G' := flowerGraph u v g hu huv
   -- e.symm is a hom G' →g G (by comap definition)
   have hom_back : ∀ {a b : Fin _}, G'.Adj a b → G.Adj (e.symm a) (e.symm b) :=
