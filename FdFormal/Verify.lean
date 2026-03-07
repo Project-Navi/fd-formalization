@@ -8,6 +8,7 @@ import FdFormal.FlowerGraph
 import FdFormal.FlowerLog
 import FdFormal.FlowerLogRatio
 import FdFormal.FlowerDimension
+import FdFormal.FlowerConstruction
 
 set_option relaxedAutoImplicit false
 set_option autoImplicit false
@@ -62,6 +63,11 @@ verification, axioms, soundness
 
 -- Bridge target definition (FlowerLogRatio)
 #print axioms HasLogRatioDimension
+
+-- F2 bridge: SimpleGraph construction + distance (FlowerConstruction)
+#print axioms flowerGraph'_connected
+#print axioms flowerGraph'_dist_hubs
+#print axioms flowerGraph_dist_hubs
 
 -- Log-ratio convergence (FlowerDimension)
 #print axioms flowerDimension

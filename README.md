@@ -74,12 +74,12 @@ FdFormal/
   FlowerGraph.lean       — Hub vertices and structural helpers
   FlowerCounts.lean      — Exact edge/vertex count formulas, bounds, monotonicity
   FlowerDiameter.lean    — Hub-distance scaling L_g = u^g, cast identities
-  FlowerLog.lean         — Log identities and squeeze-sandwich bounds (all proofs complete)
-  FlowerLogRatio.lean    — HasLogRatioDimension definition (bridge target)
+  FlowerLog.lean         — Log identities and squeeze-sandwich bounds
+  FlowerLogRatio.lean    — HasLogRatioDimension definition (F3 bridge target)
   FlowerDimension.lean   — Headline theorem: log-ratio limit = log(u+v) / log(u)
-  PathGraphDist.lean     — pathGraph distance lemmas (all proofs complete)
-  FlowerConstruction.lean — F2 bridge: SimpleGraph construction + dist = u^g (fully proved)
-  Verify.lean            — #print axioms dashboard (17 declarations)
+  PathGraphDist.lean     — pathGraph distance lemmas (upstream candidate)
+  FlowerConstruction.lean — F2 bridge: SimpleGraph construction + dist = u^g
+  Verify.lean            — #print axioms dashboard (20 declarations)
 ```
 
 ## Mathematical background
@@ -101,10 +101,10 @@ The log-ratio convergence proof (Route B — squeeze) works as follows:
 
 ## Development Process
 
-**What the author did**: The formalization architecture — choosing the proof spine
-(counts + bounds → hub distance → squeeze limit), the decision to use pure arithmetic
-recurrences (Option 3) instead of a full SimpleGraph construction, and the zero-axiom
-target — is the core contribution. The underlying mathematics is from Rozenfeld et al. 2007.
+**What the author did**: The formalization architecture — the proof spine
+(counts + bounds → hub distance → squeeze limit → graph construction → distance bridge),
+the structured-gadget approach for `FlowerConstruction`, and the zero-axiom target — is
+the core contribution. The underlying mathematics is from Rozenfeld et al. 2007.
 
 **What AI tools did**: Claude Opus assisted with Lean 4 syntax, Mathlib API
 navigation, and proof term synthesis. Aristotle (Harmonic) independently proved
