@@ -135,6 +135,49 @@ def FlowerVert.embed (u v g : ℕ) : FlowerVert u v g → FlowerVert u v (g + 1)
   | .inl h => .inl h
   | .inr ⟨k, e, pos⟩ => .inr ⟨k.castSucc, e, pos⟩
 
+/-- `embed` is injective: distinct vertices at gen g remain distinct at gen g+1. -/
+theorem FlowerVert.embed_injective {u v g : ℕ} :
+    Function.Injective (FlowerVert.embed u v g) := by
+  intro x y hxy
+  cases x with
+  | inl a =>
+    cases y with
+    | inl _ =>
+      have := Sum.inl_injective hxy
+      exact congrArg Sum.inl this
+    | inr _ => simp [embed] at hxy
+  | inr a =>
+    cases y with
+    | inl _ => simp [embed] at hxy
+    | inr b =>
+      congr 1
+      have h := Sum.inr_injective hxy
+      have hfst : a.1.castSucc = b.1.castSucc := congr_arg Sigma.fst h
+      have hk : a.1 = b.1 := Fin.castSucc_injective _ hfst
+      cases a; cases b; simp only at hk; subst hk
+      simpa using h
+
+/-- An embedded (old) vertex is never equal to a newly created vertex at gen g. -/
+theorem FlowerVert.embed_ne_new {u v g : ℕ} (x : FlowerVert u v g)
+    (e : FlowerEdge u v g) (pos : Fin (u - 1) ⊕ Fin (v - 1)) :
+    FlowerVert.embed u v g x ≠
+      .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, e, pos⟩ := by
+  cases x with
+  | inl _ => simp [embed]
+  | inr val =>
+    intro h
+    have h := Sum.inr_injective h
+    have hk := congr_arg (fun s => (Sigma.fst s).val) h
+    simp only [Fin.val_castSucc] at hk
+    omega
+
+/-- Within a single gadget, source and target positions are always distinct
+when `1 < u`. -/
+theorem localSrc_ne_localTgt (u v : ℕ) (hu : 1 < u) (e : LocalEdge u v) :
+    localSrc u v e ≠ localTgt u v e := by
+  rcases e with (⟨⟨_ | i, hi⟩⟩ | ⟨⟨_ | j, hj⟩⟩) <;>
+    simp [localSrc, localTgt] <;> split_ifs <;> simp_all
+
 /-! ## Layer 2: Edge endpoints via gadget resolution -/
 
 /-- Endpoints of edge `e` at generation `g`: `(source, target)`.
@@ -170,7 +213,25 @@ def edgeTgt (u v g : ℕ) (e : FlowerEdge u v g) : FlowerVert u v g :=
 /-- Source ≠ target for every edge. (Needed for `SimpleGraph.loopless`.) -/
 theorem edgeSrc_ne_edgeTgt (u v g : ℕ) (hu : 1 < u) (e : FlowerEdge u v g) :
     edgeSrc u v g e ≠ edgeTgt u v g e := by
-  sorry
+  induction g with
+  | zero => exact FlowerVert.hub0_ne_hub1 u v 0
+  | succ g ih =>
+    obtain ⟨parent, localE⟩ := e
+    have hpar := ih parent
+    have hloc := localSrc_ne_localTgt u v hu localE
+    simp only [edgeEndpoints, edgeSrc, edgeTgt] at hpar ⊢
+    -- Case-split on localSrc/localTgt values
+    rcases hs : localSrc u v localE with src | tgt | ⟨i⟩ | ⟨j⟩ <;>
+      rcases ht : localTgt u v localE with src | tgt | ⟨i'⟩ | ⟨j'⟩ <;>
+      simp only [hs, ht] at hloc ⊢
+    -- same-position contradictions
+    all_goals first
+      | exact absurd rfl hloc
+      | exact FlowerVert.embed_injective.ne hpar
+      | exact Ne.symm (FlowerVert.embed_injective.ne hpar)
+      | exact FlowerVert.embed_ne_new _ parent _
+      | exact Ne.symm (FlowerVert.embed_ne_new _ parent _)
+      | (intro h; have := Sum.inr_injective h; simp_all)
 
 /-! ## Layer 3: SimpleGraph -/
 
@@ -189,7 +250,9 @@ noncomputable def flowerGraph' (u v g : ℕ) (hu : 1 < u) :
   · -- symmetry
     intro a b ⟨e, h⟩; exact ⟨e, h.symm⟩
   · -- irreflexivity
-    sorry
+    exact ⟨fun a ⟨e, h⟩ => by
+      rcases h with ⟨h1, h2⟩ | ⟨h1, h2⟩ <;>
+        exact edgeSrc_ne_edgeTgt u v g hu e (h1 ▸ h2)⟩
 
 /-! ## Layer 4: Distance proof outline -/
 

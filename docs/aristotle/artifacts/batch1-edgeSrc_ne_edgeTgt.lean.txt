@@ -1,0 +1,163 @@
+/-
+This file was edited by Aristotle (https://aristotle.harmonic.fun).
+
+Lean version: leanprover/lean4:v4.24.0
+Mathlib version: f897ebcf72cd16f89ab4577d0c826cd14afaafc7
+This project request had uuid: a01b2d78-5d6e-4e15-a175-7b5a2fcf67c3
+
+Co-authored-by: Aristotle (Harmonic) <aristotle-harmonic@harmonic.fun>
+
+The following was proved by Aristotle:
+
+- theorem localSrc_ne_localTgt (u v : ℕ) (hu : 1 < u) (e : LocalEdge u v) :
+    localSrc u v e ≠ localTgt u v e
+
+- theorem edgeSrc_ne_edgeTgt (u v g : ℕ) (hu : 1 < u) (e : FlowerEdge u v g) :
+    edgeSrc u v g e ≠ edgeTgt u v g e
+
+Key discoveries by Aristotle (not in our original submission):
+
+- FlowerVert.embed_injective : Function.Injective (FlowerVert.embed u v g)
+  Embedding from gen g to g+1 is injective.
+
+- FlowerVert.embed_ne_new : embed x ≠ .inr ⟨⟨g, _⟩, y, z⟩
+  An embedded (old) vertex is never equal to a newly created vertex.
+
+These two helpers are the structural backbone of the induction. At each
+generation, the resolve function maps distinct GadgetPos values to distinct
+FlowerVert values because embed is injective and old vertices can't collide
+with new ones.
+
+Cleanup needed for integration (Lean 4.28.0):
+- induction' → induction g with
+- Multiple exact? calls (interactive-only) — fill manually
+- grind +ring / grind — verify availability on 4.28.0
+- Heavy simp +decide usage — may need rewriting
+- noncomputable section — likely unnecessary
+- Semicolon style → one tactic per line
+
+Raw proof below.
+-/
+
+import Mathlib.Tactic
+
+set_option relaxedAutoImplicit false
+set_option autoImplicit false
+
+/-! ## Layer 0: Local replacement gadget -/
+
+inductive GadgetPos (u v : ℕ)
+  | src
+  | tgt
+  | short (i : Fin (u - 1))
+  | long  (j : Fin (v - 1))
+
+abbrev LocalEdge (u v : ℕ) := Fin u ⊕ Fin v
+
+def localSrc (u v : ℕ) : LocalEdge u v → GadgetPos u v
+  | .inl ⟨0, _⟩     => .src
+  | .inl ⟨i + 1, h⟩ => .short ⟨i, by omega⟩
+  | .inr ⟨0, _⟩     => .src
+  | .inr ⟨j + 1, h⟩ => .long ⟨j, by omega⟩
+
+def localTgt (u v : ℕ) : LocalEdge u v → GadgetPos u v
+  | .inl i => if h : i.val + 1 = u then .tgt else .short ⟨i.val, by omega⟩
+  | .inr j => if h : j.val + 1 = v then .tgt else .long ⟨j.val, by omega⟩
+
+/-! ## Layer 1: Types -/
+
+def FlowerEdge (u v : ℕ) : ℕ → Type
+  | 0     => Unit
+  | g + 1 => FlowerEdge u v g × LocalEdge u v
+
+instance instFintypeFlowerEdge (u v g : ℕ) : Fintype (FlowerEdge u v g) := by
+  induction g with
+  | zero => exact inferInstanceAs (Fintype Unit)
+  | succ g ih => exact inferInstanceAs (Fintype (_ × _))
+
+def FlowerVert (u v : ℕ) (g : ℕ) : Type :=
+  Fin 2 ⊕ Σ (k : Fin g), FlowerEdge u v k.val × (Fin (u - 1) ⊕ Fin (v - 1))
+
+def FlowerVert.hub0 (u v g : ℕ) : FlowerVert u v g := .inl 0
+def FlowerVert.hub1 (u v g : ℕ) : FlowerVert u v g := .inl 1
+
+def FlowerVert.embed (u v g : ℕ) : FlowerVert u v g → FlowerVert u v (g + 1)
+  | .inl h => .inl h
+  | .inr ⟨k, e, pos⟩ => .inr ⟨k.castSucc, e, pos⟩
+
+/-! ## Layer 2: Edge endpoints -/
+
+def edgeEndpoints (u v : ℕ) :
+    (g : ℕ) → FlowerEdge u v g → FlowerVert u v g × FlowerVert u v g
+  | 0, () => (.hub0 u v 0, .hub1 u v 0)
+  | g + 1, (parent, localE) =>
+    let (pSrc, pTgt) := edgeEndpoints u v g parent
+    let resolve : GadgetPos u v → FlowerVert u v (g + 1) := fun
+      | .src     => FlowerVert.embed u v g pSrc
+      | .tgt     => FlowerVert.embed u v g pTgt
+      | .short i => .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl i⟩
+      | .long j  => .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr j⟩
+    (resolve (localSrc u v localE), resolve (localTgt u v localE))
+
+def edgeSrc (u v g : ℕ) (e : FlowerEdge u v g) : FlowerVert u v g :=
+  (edgeEndpoints u v g e).1
+
+def edgeTgt (u v g : ℕ) (e : FlowerEdge u v g) : FlowerVert u v g :=
+  (edgeEndpoints u v g e).2
+
+/-! ## Discovered helpers -/
+
+theorem FlowerVert.embed_injective {u v g : ℕ} :
+    Function.Injective (FlowerVert.embed u v g) := by
+  intro x y hxy
+  cases x <;> cases y <;> simp_all +decide [FlowerVert]
+  · injection hxy
+  · cases hxy
+  · cases hxy
+  · injection hxy
+    aesop
+
+theorem FlowerVert.embed_ne_new {u v g : ℕ} (x : FlowerVert u v g)
+    (y : FlowerEdge u v g) (z : Fin (u - 1) ⊕ Fin (v - 1)) :
+    FlowerVert.embed u v g x ≠
+      .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, y, z⟩ := by
+  rcases x with (_ | ⟨k, e, pos⟩) <;> simp +decide [*]
+  · cases ‹Fin 2›; tauto
+  · simp [FlowerVert.embed, Fin.castSucc]
+    simp +decide [Fin.ext_iff, Fin.castAdd]
+    simp +decide [Fin.ext_iff, Fin.castLE]
+    grind
+
+/-! ## Target theorems -/
+
+theorem localSrc_ne_localTgt (u v : ℕ) (hu : 1 < u) (e : LocalEdge u v) :
+    localSrc u v e ≠ localTgt u v e := by
+  unfold localSrc localTgt
+  rcases e with (⟨⟨i, hi⟩⟩ | ⟨⟨j, hj⟩⟩) <;> aesop
+
+theorem edgeSrc_ne_edgeTgt (u v g : ℕ) (hu : 1 < u) (e : FlowerEdge u v g) :
+    edgeSrc u v g e ≠ edgeTgt u v g e := by
+  revert e
+  induction' g with g ih generalizing u v <;>
+    simp +decide [*, edgeSrc, edgeTgt] at *
+  · exact fun e => by rintro h; cases h
+  · intro e
+    obtain ⟨parent, localE⟩ := e
+    have hparent : (edgeEndpoints u v g parent).1 ≠
+        (edgeEndpoints u v g parent).2 := ih u v hu parent
+    have hlocal : localSrc u v localE ≠ localTgt u v localE := exact?
+    simp [edgeEndpoints, localSrc, localTgt] at *
+    rcases localE with (⟨i, hi⟩ | ⟨j, hj⟩) <;> simp +decide [*] at *
+    · split_ifs <;> simp_all +decide [GadgetPos]
+      · rcases i with (_ | i) <;> simp_all +decide [GadgetPos]
+        exact Ne.symm (FlowerVert.embed_ne_new _ _ _)
+      · cases i <;> simp_all +decide [GadgetPos]
+        · exact?
+        · grind +ring
+    · split_ifs <;> simp_all +decide [GadgetPos]
+      · rcases j with (_ | j) <;> simp_all +decide [GadgetPos]
+        · exact FlowerVert.embed_injective.ne (ih u v hu parent)
+        · exact Ne.symm (FlowerVert.embed_ne_new _ _ _)
+      · cases j <;> simp_all +decide [GadgetPos]
+        · exact?
+        · grind +ring
