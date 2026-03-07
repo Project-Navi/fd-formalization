@@ -409,21 +409,83 @@ theorem flowerGraph'_adj_iff (u v g : ℕ) (hu : 1 < u)
   · exact id
   · exact id
 
-/-! ## Layer 4: Distance proof outline -/
+/-! ## Layer 4: Walk construction and distance -/
+
+/-- Walk of length `u` through the short path of a replacement gadget.
+Converts the vertex chain from `gadget_adj_chain` into a `SimpleGraph.Walk`. -/
+theorem gadget_short_walk (u v g : ℕ) (hu : 1 < u)
+    (parent : FlowerEdge u v g) :
+    ∃ w : (flowerGraph' u v (g + 1) hu).Walk
+        (FlowerVert.embed u v g (edgeSrc u v g parent))
+        (FlowerVert.embed u v g (edgeTgt u v g parent)),
+      w.length = u := by
+  obtain ⟨vertices, h0, hlast, hadj⟩ := gadget_adj_chain u v g hu parent
+  rw [← h0, ← hlast]
+  suffices ∀ k (hk : k ≤ u),
+      ∃ w : (flowerGraph' u v (g + 1) hu).Walk
+          (vertices 0) (vertices ⟨k, by omega⟩),
+        w.length = k from this u le_rfl
+  intro k hk
+  induction k with
+  | zero => exact ⟨.nil, rfl⟩
+  | succ k ih =>
+    obtain ⟨w, hw⟩ := ih (by omega)
+    exact ⟨w.append (.cons (hadj ⟨k, by omega⟩) .nil), by
+      simp only [SimpleGraph.Walk.length_append, SimpleGraph.Walk.length_cons,
+        SimpleGraph.Walk.length_nil, hw]⟩
+
+/-- Adjacent vertices in gen `g` are connected by a walk of length `u`
+in gen `g+1` (through the replacement gadget's short path). -/
+theorem adj_lift (u v g : ℕ) (hu : 1 < u) (a b : FlowerVert u v g)
+    (hab : (flowerGraph' u v g hu).Adj a b) :
+    ∃ w : (flowerGraph' u v (g + 1) hu).Walk
+        (FlowerVert.embed u v g a) (FlowerVert.embed u v g b),
+      w.length = u := by
+  obtain ⟨e, he⟩ := hab
+  rcases he with ⟨ha, hb⟩ | ⟨hb, ha⟩
+  · subst ha; subst hb
+    exact gadget_short_walk u v g hu e
+  · subst ha; subst hb
+    obtain ⟨w, hw⟩ := gadget_short_walk u v g hu e
+    exact ⟨w.reverse, by rw [SimpleGraph.Walk.length_reverse, hw]⟩
+
+/-- Lift a gen-`g` walk to gen `g+1` by replacing each edge with a gadget
+short path. The resulting walk has length `u * w.length`. -/
+theorem lift_walk (u v g : ℕ) (hu : 1 < u) {a b : FlowerVert u v g}
+    (w : (flowerGraph' u v g hu).Walk a b) :
+    ∃ w' : (flowerGraph' u v (g + 1) hu).Walk
+        (FlowerVert.embed u v g a) (FlowerVert.embed u v g b),
+      w'.length = u * w.length := by
+  induction w with
+  | nil => exact ⟨.nil, by simp⟩
+  | cons hab tail ih =>
+    obtain ⟨w_step, hw_step⟩ := adj_lift u v g hu _ _ hab
+    obtain ⟨w_tail, hw_tail⟩ := ih
+    exact ⟨w_step.append w_tail, by
+      rw [SimpleGraph.Walk.length_append, hw_step, hw_tail,
+        SimpleGraph.Walk.length_cons, Nat.mul_succ]
+      omega⟩
+
+/-- **Upper bound**: there exists a walk of length `u^g` between hubs.
+
+At gen 0, the single edge gives a walk of length 1 = u^0.
+At gen g+1, `lift_walk` replaces each edge with a gadget short path
+(length u), giving total length u * u^g = u^(g+1). -/
+theorem flowerGraph'_walk_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+    ∃ w : (flowerGraph' u v g hu).Walk (.hub0 u v g) (.hub1 u v g),
+      w.length = u ^ g := by
+  induction g with
+  | zero =>
+    exact ⟨.cons (⟨(), Or.inl ⟨rfl, rfl⟩⟩ : (flowerGraph' u v 0 hu).Adj _ _) .nil,
+      by simp [SimpleGraph.Walk.length]⟩
+  | succ g ih =>
+    obtain ⟨w, hw⟩ := ih
+    obtain ⟨w', hw'⟩ := lift_walk u v g hu w
+    exact ⟨w', by rw [hw', hw, pow_succ, Nat.mul_comm]⟩
 
 /-- The flower graph is connected. -/
 theorem flowerGraph'_connected (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     (flowerGraph' u v g hu).Connected := by
-  sorry
-
-/-- **Upper bound**: there exists a walk of length `u^g` between hubs.
-
-Proof idea (inductive): At gen 0, the single edge is a walk of length 1 = u^0.
-At gen g+1, replace each edge of the gen g walk with the short path
-(length u) through the gadget. Total length: u * u^g = u^(g+1). -/
-theorem flowerGraph'_walk_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
-    ∃ w : (flowerGraph' u v g hu).Walk (.hub0 u v g) (.hub1 u v g),
-      w.length = u ^ g := by
   sorry
 
 /-- **Lower bound**: every walk between hubs has length ≥ u^g.
