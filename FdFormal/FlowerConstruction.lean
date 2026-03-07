@@ -173,10 +173,10 @@ theorem FlowerVert.embed_ne_new {u v g : ℕ} (x : FlowerVert u v g)
 
 /-- Within a single gadget, source and target positions are always distinct
 when `1 < u`. -/
-theorem localSrc_ne_localTgt (u v : ℕ) (hu : 1 < u) (e : LocalEdge u v) :
+theorem localSrc_ne_localTgt (u v : ℕ) (_hu : 1 < u) (e : LocalEdge u v) :
     localSrc u v e ≠ localTgt u v e := by
   rcases e with (⟨⟨_ | i, hi⟩⟩ | ⟨⟨_ | j, hj⟩⟩) <;>
-    simp [localSrc, localTgt] <;> split_ifs <;> simp_all
+    simp only [localSrc, localTgt] <;> (split_ifs <;> simp_all)
 
 /-! ## Layer 2: Edge endpoints via gadget resolution -/
 
