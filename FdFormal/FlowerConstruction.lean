@@ -224,7 +224,11 @@ theorem edgeSrc_ne_edgeTgt (u v g : ℕ) (hu : 1 < u) (e : FlowerEdge u v g) :
     rcases hs : localSrc u v localE with src | tgt | ⟨i⟩ | ⟨j⟩ <;>
       rcases ht : localTgt u v localE with src | tgt | ⟨i'⟩ | ⟨j'⟩ <;>
       simp only [hs, ht] at hloc ⊢
-    -- same-position contradictions
+    -- 16 cases from (localSrc × localTgt). Four closure patterns:
+    -- 1. absurd rfl hloc: same position (src=src, tgt=tgt) contradicts hloc
+    -- 2. embed_injective.ne: both endpoints are embedded, use inductive hypothesis
+    -- 3. embed_ne_new: one endpoint is embedded, the other is a new vertex
+    -- 4. Sum.inr_injective + simp_all: both are new vertices, extract index equality
     all_goals first
       | exact absurd rfl hloc
       | exact FlowerVert.embed_injective.ne hpar
