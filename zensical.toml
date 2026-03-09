@@ -23,7 +23,13 @@ nav = [
   {"Getting Started" = [
     {"Quickstart" = "getting-started/quickstart.md"},
   ]},
+  {"Explanation" = [
+    {"Proof Strategy" = "explanation/proof-strategy.md"},
+    {"Graph Construction" = "explanation/graph-construction.md"},
+  ]},
   {"Reference" = [
+    {"Theorems" = "reference/theorems.md"},
+    {"Roadmap" = "reference/roadmap.md"},
     {"Changelog" = "reference/changelog.md"},
   ]},
 ]
