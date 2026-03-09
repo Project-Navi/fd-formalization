@@ -4,8 +4,6 @@ hide:
   - toc
 ---
 
-<div class="hero-glow" markdown>
-
 # fd-formalization
 
 **Lean 4 + Mathlib formalization of \((u,v)\)-flower fractal dimension.**
@@ -14,8 +12,6 @@ Hub distance \(= u^g\) and log-ratio convergence to \(\frac{\log(u+v)}{\log u}\)
 
 [Get Started](getting-started/quickstart.md){ .md-button .md-button--primary }
 [Theorems](reference/theorems.md){ .md-button }
-
-</div>
 
 ---
 
