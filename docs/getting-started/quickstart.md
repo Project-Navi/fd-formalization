@@ -46,7 +46,7 @@ This fails on any `sorry` or warning. A clean exit means every theorem is fully 
 lake build FdFormal.Verify
 ```
 
-This builds `Verify.lean`, which runs `#print axioms` on all 20 key declarations. Every declaration should depend only on `propext`, `Classical.choice`, and `Quot.sound` --- the standard Lean 4 axioms.
+This builds `Verify.lean`, which runs `#print axioms` on all 27 key declarations. Every declaration should depend only on `propext`, `Classical.choice`, and `Quot.sound` --- the standard Lean 4 axioms.
 
 ### Mathlib linter
 
