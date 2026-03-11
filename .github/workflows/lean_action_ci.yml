@@ -5,10 +5,17 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions: {}
+
+concurrency:
+  group: lean-ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 env:
   ELAN_HOME: /home/runner/.elan
 
 jobs:
+  # CONTRACT: org ruleset requires this exact check name 'build'
   build:
     runs-on: ubuntu-latest
     permissions:
