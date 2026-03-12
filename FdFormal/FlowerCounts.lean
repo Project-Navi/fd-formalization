@@ -103,7 +103,7 @@ theorem flowerVertCount_eq (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     (u + v - 2) * (u + v) ^ g + (u + v) := by
   induction g with
   | zero =>
-    simp
+    simp only [flowerVertCount, pow_zero, mul_one]
     omega
   | succ g ih =>
     simp only [flowerVertCount_succ, flowerEdgeCount_eq_pow, pow_succ]
@@ -128,7 +128,7 @@ theorem flowerVertCount_lower (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     (u + v - 2) * (u + v) ^ g ≤
     (u + v - 1) * flowerVertCount u v g := by
   rw [flowerVertCount_eq u v g hu huv]
-  exact le_add_of_nonneg_right (Nat.zero_le _)
+  omega
 
 /-- Upper bound: `(w - 1) * N_g ≤ 2 * (w - 1) * w^g`. -/
 theorem flowerVertCount_upper (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :

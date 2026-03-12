@@ -74,10 +74,8 @@ theorem flowerVertCount_ge_real (u v g : ℕ) (hu : 1 < u)
     (huv : u ≤ v) :
     (↑(u + v) - 2) / (↑(u + v) - 1) * (↑(u + v) : ℝ) ^ g ≤
     ↑(flowerVertCount u v g) := by
-  have hw1 : (0 : ℝ) < ↑(u + v) - 1 := by
-    have : (1 : ℝ) < ↑(u + v) := by
-      exact_mod_cast (show 1 < u + v from by omega)
-    linarith
+  have hw1 : (0 : ℝ) < ↑(u + v) - 1 :=
+    sub_pos.mpr (by exact_mod_cast (show 1 < u + v by omega))
   rw [div_mul_eq_mul_div, div_le_iff₀ hw1]
   have h := flowerVertCount_lower_real u v g hu huv
   linarith [mul_comm (↑(u + v) - 1 : ℝ) (↑(flowerVertCount u v g) : ℝ)]
@@ -86,13 +84,11 @@ theorem flowerVertCount_ge_real (u v g : ℕ) (hu : 1 < u)
 theorem flowerVertCount_le_real (u v g : ℕ) (hu : 1 < u)
     (huv : u ≤ v) :
     (↑(flowerVertCount u v g) : ℝ) ≤ 2 * (↑(u + v) : ℝ) ^ g := by
-  have hw1 : (0 : ℝ) < ↑(u + v) - 1 := by
-    have : (1 : ℝ) < ↑(u + v) := by
-      exact_mod_cast (show 1 < u + v from by omega)
-    linarith
+  have hw1 : (0 : ℝ) < ↑(u + v) - 1 :=
+    sub_pos.mpr (by exact_mod_cast (show 1 < u + v by omega))
   have h := flowerVertCount_upper_real u v g hu huv
   rw [show (2 : ℝ) * (↑(u + v) - 1) * (↑(u + v) : ℝ) ^ g =
-      (↑(u + v) - 1) * (2 * (↑(u + v) : ℝ) ^ g) from by ring] at h
+      (↑(u + v) - 1) * (2 * (↑(u + v) : ℝ) ^ g) by ring] at h
   exact (mul_le_mul_iff_right₀ hw1).mp h
 
 /-! ### The headline theorem -/
@@ -113,7 +109,7 @@ theorem flowerDimension (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
   have hlogu : 0 < log (↑u : ℝ) :=
     log_pos (by exact_mod_cast hu)
   have hlogw : 0 < log (↑(u + v) : ℝ) :=
-    log_pos (by exact_mod_cast (show 1 < u + v from by omega))
+    log_pos (by exact_mod_cast (show 1 < u + v by omega))
   have hw_pos : (0 : ℝ) < ↑(u + v) :=
     Nat.cast_pos.mpr (by omega)
   have hN_pos : ∀ g, (0 : ℝ) < ↑(flowerVertCount u v g) :=
@@ -122,8 +118,8 @@ theorem flowerDimension (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
   have h_log_hub : ∀ g : ℕ,
       log (↑(flowerHubDist u v g) : ℝ) = ↑g * log (↑u : ℝ) := by
     intro g
-    rw [show (↑(flowerHubDist u v g) : ℝ) = (↑u : ℝ) ^ g from by
-      simp [flowerHubDist_eq_pow, Nat.cast_pow]]
+    rw [show (↑(flowerHubDist u v g) : ℝ) = (↑u : ℝ) ^ g by
+      simp only [flowerHubDist_eq_pow, Nat.cast_pow]]
     exact log_pow (↑u) g
   -- Step 2: Suffices with g * log(u) in denominator
   suffices h : Tendsto
@@ -148,14 +144,9 @@ theorem flowerDimension (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
   -- The residual is bounded between log(c₁)/(g*log u) and log(2)/(g*log u)
   -- where c₁ = (w-2)/(w-1) > 0
   set c₁ := (↑(u + v) - 2 : ℝ) / (↑(u + v) - 1) with hc₁_def
-  have hc₁_pos : 0 < c₁ := by
-    apply div_pos
-    · have : (2 : ℝ) < ↑(u + v) := by
-        exact_mod_cast (show 2 < u + v from by omega)
-      linarith
-    · have : (1 : ℝ) < ↑(u + v) := by
-        exact_mod_cast (show 1 < u + v from by omega)
-      linarith
+  have hc₁_pos : 0 < c₁ :=
+    div_pos (sub_pos.mpr (by exact_mod_cast (show 2 < u + v by omega)))
+      (sub_pos.mpr (by exact_mod_cast (show 1 < u + v by omega)))
   -- g * log(u) → ∞
   have h_denom : Tendsto (fun g : ℕ ↦ (↑g : ℝ) * log (↑u : ℝ))
       atTop atTop :=
