@@ -60,8 +60,7 @@ variable {G}
 
 @[simp]
 theorem mem_ball {c v : V} {r : ℕ∞} :
-    v ∈ G.ball c r ↔ G.edist c v < r :=
-  Iff.rfl
+    v ∈ G.ball c r ↔ G.edist c v < r := .rfl
 
 @[simp]
 theorem ball_zero {c : V} : G.ball c 0 = ∅ := by
@@ -70,29 +69,13 @@ theorem ball_zero {c : V} : G.ball c 0 = ∅ := by
 @[simp]
 theorem ball_one {c : V} : G.ball c 1 = {c} := by
   ext v
-  simp only [mem_ball, Set.mem_singleton_iff]
-  constructor
-  · intro h
-    have h0 : G.edist c v = 0 := by
-      have hne : G.edist c v ≠ ⊤ := ne_top_of_lt h
-      lift G.edist c v to ℕ using hne with d
-      have : d < 1 := by exact_mod_cast h
-      exact_mod_cast (show d = 0 from by omega)
-    exact (edist_eq_zero_iff.mp h0).symm
-  · rintro rfl; simp
+  simp [ball, ENat.lt_one_iff_eq_zero]
 
 @[simp]
 theorem ball_top {c : V} :
     G.ball c ⊤ = (G.connectedComponentMk c).supp := by
   ext v
-  simp only [mem_ball, ConnectedComponent.mem_supp_iff]
-  constructor
-  · intro h
-    exact (ConnectedComponent.eq.mpr
-      (reachable_of_edist_ne_top (ne_top_of_lt h))).symm
-  · intro h
-    exact lt_top_iff_ne_top.mpr
-      (edist_ne_top_iff_reachable.mpr (ConnectedComponent.eq.mp h.symm))
+  simp [lt_top_iff_ne_top, edist_ne_top_iff_reachable, reachable_comm]
 
 /-- Balls are monotone in the radius. -/
 theorem ball_mono {c : V} {r₁ r₂ : ℕ∞} (h : r₁ ≤ r₂) :
@@ -128,7 +111,7 @@ theorem ball_anti {G' : SimpleGraph V} {c : V} {r : ℕ∞} (h : G ≤ G') :
 theorem mem_ball_of_adj {c v : V} (h : G.Adj c v) :
     v ∈ G.ball c 2 := by
   simp only [mem_ball]
-  have h1 : (1 : ℕ∞) < 2 := by exact_mod_cast (show (1 : ℕ) < 2 from by omega)
+  have h1 : (1 : ℕ∞) < 2 := by exact_mod_cast (by omega : (1 : ℕ) < 2)
   exact lt_of_le_of_lt (edist_le_one_iff_adj_or_eq.mpr (Or.inl h)) h1
 
 theorem adj_of_mem_ball_two {c v : V} (h : v ∈ G.ball c 2) (hne : c ≠ v) :
@@ -138,7 +121,7 @@ theorem adj_of_mem_ball_two {c v : V} (h : v ∈ G.ball c 2) (hne : c ≠ v) :
     have hne_top : G.edist c v ≠ ⊤ := ne_top_of_lt h
     lift G.edist c v to ℕ using hne_top with d
     have : d < 2 := by exact_mod_cast h
-    exact_mod_cast (show d ≤ 1 from by omega)
+    exact_mod_cast (by omega : d ≤ 1)
   exact (edist_le_one_iff_adj_or_eq.mp hle).resolve_right hne
 
 /-- If `v ∈ ball c r₁` and `w ∈ ball v r₂`, then `w ∈ ball c (r₁ + r₂)`. -/

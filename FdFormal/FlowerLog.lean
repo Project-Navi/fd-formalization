@@ -66,13 +66,10 @@ theorem log_flowerVertCount_residual_lower :
     log ((↑(u + v) - 2 : ℝ) / (↑(u + v) - 1)) ≤
     log ↑(flowerVertCount u v g) - ↑g * log (↑(u + v) : ℝ) := by
   have hw_pos : (0 : ℝ) < ↑(u + v) := Nat.cast_pos.mpr (by omega)
-  have hw1 : (0 : ℝ) < ↑(u + v) - 1 := by
-    have : (1 : ℝ) < ↑(u + v) := by exact_mod_cast (show 1 < u + v by omega)
-    linarith
-  have hc : (0 : ℝ) < (↑(u + v) - 2) / (↑(u + v) - 1) := by
-    apply div_pos _ hw1
-    have : (2 : ℝ) < ↑(u + v) := by exact_mod_cast (show 2 < u + v by omega)
-    linarith
+  have hw1 : (0 : ℝ) < ↑(u + v) - 1 :=
+    sub_pos.mpr (by exact_mod_cast (show 1 < u + v by omega))
+  have hc : (0 : ℝ) < (↑(u + v) - 2) / (↑(u + v) - 1) :=
+    div_pos (sub_pos.mpr (by exact_mod_cast (show 2 < u + v by omega))) hw1
   -- From ℕ bound: (w-2)·w^g ≤ (w-1)·N_g → (w-2)/(w-1)·w^g ≤ N_g
   have h_ge : (↑(u + v) - 2) / (↑(u + v) - 1) * (↑(u + v) : ℝ) ^ g ≤
       ↑(flowerVertCount u v g) := by
