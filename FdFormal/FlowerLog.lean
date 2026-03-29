@@ -74,11 +74,11 @@ theorem log_flowerVertCount_residual_lower :
   have h_ge : (↑(u + v) - 2) / (↑(u + v) - 1) * (↑(u + v) : ℝ) ^ g ≤
       ↑(flowerVertCount u v g) := by
     rw [div_mul_eq_mul_div, div_le_iff₀ hw1]
-    have h_cast := Nat.cast_le (α := ℝ) |>.mpr (flowerVertCount_lower u v g hu huv)
-    simp only [Nat.cast_mul, Nat.cast_pow] at h_cast
+    have := Nat.cast_le (α := ℝ) |>.mpr (flowerVertCount_lower u v g hu huv)
+    simp only [Nat.cast_mul, Nat.cast_pow] at this
     rw [Nat.cast_sub (by omega : 2 ≤ u + v),
-        Nat.cast_sub (by omega : 1 ≤ u + v)] at h_cast
-    simp only [Nat.cast_ofNat, Nat.cast_one] at h_cast
+        Nat.cast_sub (by omega : 1 ≤ u + v)] at this
+    simp only [Nat.cast_ofNat, Nat.cast_one] at this
     linarith [mul_comm (↑(u + v) - 1 : ℝ) (↑(flowerVertCount u v g) : ℝ)]
   have h_log := log_le_log (mul_pos hc (pow_pos hw_pos g)) h_ge
   rw [log_mul (ne_of_gt hc) (ne_of_gt (pow_pos hw_pos g)), log_pow] at h_log

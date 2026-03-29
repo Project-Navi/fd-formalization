@@ -105,7 +105,6 @@ theorem flowerDimension (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
         log ↑(flowerHubDist u v g))
       atTop
       (nhds (log ↑(u + v) / log ↑u)) := by
-  -- Positivity
   have hlogu : 0 < log (↑u : ℝ) :=
     log_pos (by exact_mod_cast hu)
   have hlogw : 0 < log (↑(u + v) : ℝ) :=
@@ -129,29 +128,20 @@ theorem flowerDimension (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     filter_upwards [eventually_gt_atTop 0] with g hg
     rw [h_log_hub]
   -- Step 3: Decompose ratio = residual + constant
-  -- log(N_g)/(g*log u) = [log(N_g) - g*log w]/(g*log u) + log w/log u
   have h_decomp : ∀ g : ℕ, 0 < (↑g : ℝ) →
       log ↑(flowerVertCount u v g) / (↑g * log (↑u : ℝ)) =
       (log ↑(flowerVertCount u v g) - ↑g * log ↑(u + v)) /
         (↑g * log (↑u : ℝ)) +
       log ↑(u + v) / log (↑u : ℝ) := by
-    intro g hg
-    have hg_ne : (↑g : ℝ) ≠ 0 := ne_of_gt hg
-    have hlogu_ne : log (↑u : ℝ) ≠ 0 := ne_of_gt hlogu
-    field_simp
-    ring
+    intro g hg; field_simp; ring
   -- Step 4: Show residual → 0
-  -- The residual is bounded between log(c₁)/(g*log u) and log(2)/(g*log u)
-  -- where c₁ = (w-2)/(w-1) > 0
   set c₁ := (↑(u + v) - 2 : ℝ) / (↑(u + v) - 1) with hc₁_def
   have hc₁_pos : 0 < c₁ :=
     div_pos (sub_pos.mpr (by exact_mod_cast (show 2 < u + v by omega)))
       (sub_pos.mpr (by exact_mod_cast (show 1 < u + v by omega)))
-  -- g * log(u) → ∞
   have h_denom : Tendsto (fun g : ℕ ↦ (↑g : ℝ) * log (↑u : ℝ))
       atTop atTop :=
     Tendsto.atTop_mul_const hlogu (tendsto_natCast_atTop_atTop (R := ℝ))
-  -- Lower bound: log(c₁) ≤ log(N_g) - g * log(w)
   have h_res_lower : ∀ᶠ g in atTop,
       log c₁ / (↑g * log (↑u : ℝ)) ≤
       (log ↑(flowerVertCount u v g) - ↑g * log ↑(u + v)) /
@@ -159,14 +149,11 @@ theorem flowerDimension (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     filter_upwards [eventually_gt_atTop 0] with g hg
     have hg_pos : (0 : ℝ) < ↑g := Nat.cast_pos.mpr hg
     rw [div_le_div_iff_of_pos_right (mul_pos hg_pos hlogu)]
-    have h_bound := flowerVertCount_ge_real u v g hu huv
-    have h_cw_pos : 0 < c₁ * (↑(u + v) : ℝ) ^ g :=
-      mul_pos hc₁_pos (pow_pos hw_pos g)
-    have h_log := log_le_log h_cw_pos h_bound
+    have h_log := log_le_log (mul_pos hc₁_pos (pow_pos hw_pos g))
+      (flowerVertCount_ge_real u v g hu huv)
     rw [log_mul (ne_of_gt hc₁_pos) (ne_of_gt (pow_pos hw_pos g)),
         log_pow] at h_log
     linarith
-  -- Upper bound: log(N_g) - g * log(w) ≤ log(2)
   have h_res_upper : ∀ᶠ g in atTop,
       (log ↑(flowerVertCount u v g) - ↑g * log ↑(u + v)) /
         (↑g * log (↑u : ℝ)) ≤
@@ -174,26 +161,18 @@ theorem flowerDimension (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     filter_upwards [eventually_gt_atTop 0] with g hg
     have hg_pos : (0 : ℝ) < ↑g := Nat.cast_pos.mpr hg
     rw [div_le_div_iff_of_pos_right (mul_pos hg_pos hlogu)]
-    have h_bound := flowerVertCount_le_real u v g hu huv
-    have h_log := log_le_log (hN_pos g) h_bound
+    have h_log := log_le_log (hN_pos g) (flowerVertCount_le_real u v g hu huv)
     rw [log_mul (by norm_num : (2 : ℝ) ≠ 0)
           (ne_of_gt (pow_pos hw_pos g)),
         log_pow] at h_log
     linarith
-  -- Both bounds → 0
-  have h_lo : Tendsto (fun g : ℕ ↦ log c₁ / (↑g * log (↑u : ℝ)))
-      atTop (nhds 0) :=
-    h_denom.const_div_atTop _
-  have h_hi : Tendsto (fun g : ℕ ↦ log 2 / (↑g * log (↑u : ℝ)))
-      atTop (nhds 0) :=
-    h_denom.const_div_atTop _
-  -- Squeeze: residual → 0
   have h_res : Tendsto
       (fun g : ℕ ↦
         (log ↑(flowerVertCount u v g) - ↑g * log ↑(u + v)) /
           (↑g * log (↑u : ℝ)))
       atTop (nhds 0) :=
-    h_lo.squeeze' h_hi h_res_lower h_res_upper
+    (h_denom.const_div_atTop _).squeeze' (h_denom.const_div_atTop _)
+      h_res_lower h_res_upper
   -- Step 5: residual + constant → 0 + constant = constant
   have h_sum := h_res.add
     (tendsto_const_nhds (x := log (↑(u + v) : ℝ) / log (↑u : ℝ)))

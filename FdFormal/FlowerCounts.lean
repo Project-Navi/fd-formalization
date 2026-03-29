@@ -107,10 +107,7 @@ theorem flowerVertCount_eq (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     omega
   | succ g ih =>
     simp only [flowerVertCount_succ, flowerEdgeCount_eq_pow, pow_succ]
-    have h1 : 1 ≤ u + v := by omega
-    have h2 : 2 ≤ u + v := by omega
-    zify [h1, h2] at ih ⊢
-    nlinarith [ih]
+    zify [show 1 ≤ u + v by omega, show 2 ≤ u + v by omega] at ih ⊢; nlinarith
 
 /-- The vertex count is always positive (holds for all `u`, `v`). -/
 theorem flowerVertCount_pos (u v g : ℕ) :
@@ -132,14 +129,10 @@ theorem flowerVertCount_lower (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
 
 /-- Upper bound: `(w - 1) * N_g ≤ 2 * (w - 1) * w^g`. -/
 theorem flowerVertCount_upper (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
-    (u + v - 1) * flowerVertCount u v g ≤
-    2 * (u + v - 1) * (u + v) ^ g := by
+    (u + v - 1) * flowerVertCount u v g ≤ 2 * (u + v - 1) * (u + v) ^ g := by
   rw [flowerVertCount_eq u v g hu huv]
-  have h1 : 1 ≤ u + v := by omega
-  have h2 : 2 ≤ u + v := by omega
   have h_pow : 1 ≤ (u + v) ^ g := Nat.one_le_pow _ _ (by omega)
-  zify [h1, h2] at h_pow ⊢
-  nlinarith [h_pow]
+  zify [show 1 ≤ u + v by omega, show 2 ≤ u + v by omega] at h_pow ⊢; nlinarith
 
 /-! ### Monotonicity -/
 
@@ -163,11 +156,10 @@ theorem flowerVertCount_cast_eq (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     (↑(u + v) - 1 : ℝ) * (↑(flowerVertCount u v g) : ℝ) =
     (↑(u + v) - 2 : ℝ) * (↑(u + v) : ℝ) ^ g + (↑(u + v) : ℝ) := by
   have h := flowerVertCount_eq u v g hu huv
-  have h_cast := congr_arg (Nat.cast (R := ℝ)) h
-  simp only [Nat.cast_mul, Nat.cast_pow, Nat.cast_add] at h_cast
-  rw [Nat.cast_sub (by omega : 2 ≤ u + v),
-      Nat.cast_sub (by omega : 1 ≤ u + v)] at h_cast
-  exact_mod_cast h_cast
+  have := congr_arg (Nat.cast (R := ℝ)) h
+  simp only [Nat.cast_mul, Nat.cast_pow, Nat.cast_add] at this
+  rw [Nat.cast_sub (by omega), Nat.cast_sub (by omega)] at this
+  exact_mod_cast this
 
 /-! ### Real-valued wrappers -/
 
@@ -177,6 +169,5 @@ noncomputable def flowerVertCountReal (u v : ℕ) (g : ℕ) : ℝ :=
 
 /-- The real-valued vertex count is positive. -/
 theorem flowerVertCountReal_pos (u v g : ℕ) :
-    0 < flowerVertCountReal u v g := by
-  simp only [flowerVertCountReal]
-  exact Nat.cast_pos.mpr (flowerVertCount_pos u v g)
+    0 < flowerVertCountReal u v g :=
+  Nat.cast_pos.mpr (flowerVertCount_pos u v g)

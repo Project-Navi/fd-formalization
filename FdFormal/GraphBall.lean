@@ -129,10 +129,8 @@ theorem mem_ball_of_mem_ball_of_mem_ball {c v w : V} {r₁ r₂ : ℕ∞}
     (hv : v ∈ G.ball c r₁) (hw : w ∈ G.ball v r₂) :
     w ∈ G.ball c (r₁ + r₂) := by
   simp only [mem_ball] at *
-  have hw_ne : G.edist v w ≠ ⊤ := ne_top_of_lt hw
-  calc G.edist c w
-    ≤ G.edist c v + G.edist v w := G.edist_triangle
-    _ < r₁ + G.edist v w := (ENat.add_lt_add_iff_right hw_ne).mpr hv
+  calc G.edist c w ≤ G.edist c v + G.edist v w := G.edist_triangle
+    _ < r₁ + G.edist v w := (ENat.add_lt_add_iff_right (ne_top_of_lt hw)).mpr hv
     _ ≤ r₁ + r₂ := by gcongr
 
 end SimpleGraph
