@@ -118,7 +118,7 @@ theorem flowerEdge_card (u v g : ℕ) :
   induction g with
   | zero => simp [FlowerEdge]
   | succ g ih =>
-    simp only [FlowerEdge, Fintype.card_prod, Fintype.card_sum, Fintype.card_fin, ih, pow_succ,
+    simp [FlowerEdge, Fintype.card_prod, Fintype.card_sum, Fintype.card_fin, ih, pow_succ,
       mul_comm]
 
 /-- Vertex type for the (u,v)-flower at generation `g`.
@@ -158,8 +158,7 @@ theorem FlowerVert.embed_injective {u v g : ℕ} :
   | inl a =>
     cases y with
     | inl _ =>
-      have := Sum.inl_injective hxy
-      exact congrArg Sum.inl this
+      exact congrArg Sum.inl (Sum.inl_injective hxy)
     | inr _ => simp [embed] at hxy
   | inr a =>
     cases y with
@@ -412,10 +411,7 @@ noncomputable def flowerGraph' (u v g : ℕ) :
 /-- The adjacency relation of `flowerGraph'` is `flowerAdj'`. -/
 theorem flowerGraph'_adj_iff (u v g : ℕ)
     (a b : FlowerVert u v g) :
-    (flowerGraph' u v g).Adj a b ↔ flowerAdj' u v g a b := by
-  constructor
-  · exact id
-  · exact id
+    (flowerGraph' u v g).Adj a b ↔ flowerAdj' u v g a b := .rfl
 
 /-! ## Layer 4: Walk construction and distance -/
 
@@ -757,13 +753,13 @@ theorem rank_edge_bounds (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
       | (have h := htgt_eq ‹_›; rw [h, mul_add, mul_one]
          constructor
          · exact Nat.add_le_add_left (Nat.div_le_of_le_mul (by
-             nlinarith [Nat.mul_le_mul_left u (show n + 1 ≤ v from by omega),
+             nlinarith [Nat.mul_le_mul_left u (show n + 1 ≤ v by omega),
                mul_comm (n + 1) u])) _
          · suffices u - 1 ≤ (n + 1) * u / v by omega
            calc u - 1 = (u - 1) * v / v :=
-                 (Nat.mul_div_cancel (u - 1) (show 0 < v from by omega)).symm
+                 (Nat.mul_div_cancel (u - 1) (show 0 < v by omega)).symm
              _ ≤ (n + 1) * u / v := Nat.div_le_div_right (by
-                 zify [show 1 ≤ u from by omega, show 1 ≤ v from by omega] at *
+                 zify [show 1 ≤ u by omega, show 1 ≤ v by omega] at *
                  nlinarith))
 
 /-- Rank is non-decreasing along edges: rank(edgeSrc) ≤ rank(edgeTgt). -/
@@ -941,8 +937,7 @@ theorem FlowerVert.project_embed (u v g : ℕ) (x : FlowerVert u v g) :
   | inl _ => rfl
   | inr val =>
     obtain ⟨k, e, pos⟩ := val
-    simp only [FlowerVert.embed, FlowerVert.project, Fin.val_castSucc, dif_pos k.isLt,
-      Fin.eta]
+    simp [FlowerVert.embed, FlowerVert.project, Fin.val_castSucc, Fin.eta]
 
 /-- Hub 0 projects to hub 0. -/
 theorem FlowerVert.project_hub0 (u v g : ℕ) :

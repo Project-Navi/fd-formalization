@@ -55,6 +55,14 @@ copyright headers on all `.lean` files.
 - **Terminal `simp`**: do NOT squeeze (maintenance burden from lemma renames)
 - **Non-terminal `simp`**: MUST be `simp only [...]`
 - **One tactic per line** (semicolons only for short single-idea sequences)
+- **Set equality**: `ext v; simp [...]` is canonical — don't build manual
+  `constructor`/`rcases`/`absurd` chains when `simp` with the right lemma set closes it
+- **Skip `ext`** when `simp` alone closes a set equality (e.g., `ball_zero`)
+- **`simp` before `tauto`**: `simp` + commutativity lemmas (`adj_comm`, `or_comm`)
+  often closes goals that look like they need `tauto`
+- **`.rfl`** not `Iff.rfl` — dot notation for constructor terms
+- **Named lemmas over `show ... from rfl`**: e.g., `one_add_one_eq_two.symm`
+  not `show (2 : ℕ∞) = 1 + 1 from rfl`
 
 ### Attributes
 
@@ -72,6 +80,9 @@ copyright headers on all `.lean` files.
 - **Hypotheses left of colon** — `(h : 1 < n) : 0 < n` not `: 1 < n → 0 < n`
 - **`abbrev`** (reducible) requires justification; `@[irreducible]` requires justification
 - **Classical by default** — don't thread `Decidable` instances unless the type requires them
+- **Definition argument order**: choose to minimize downstream `symm`/`comm` calls —
+  e.g., `{v | G.edist v c < r}` not `{v | G.edist c v < r}` when most API lemmas
+  state the varying argument first
 
 ### Documentation
 
@@ -182,3 +193,10 @@ copyright headers on all `.lean` files.
 - **Commit messages**: substantive, not ceremonial
 - Feature branches merge to main via fast-forward; delete after merge
 - **Mathlib PR process**: post to Zulip first, small PRs preferred, AI disclosure required
+- **PR description format**: one-line summary → blank line → AI disclosure (1-2 sentences)
+  → Zulip link → `---` → template buttons. No design-decision sections, no tables.
+- **Review responses**: one sentence per comment, inline on the diff where possible.
+  No tables, headers, diff summaries, or structured documents. Let the code speak.
+- **AI disclosure**: in PR body only, not in commit `Co-Authored-By` tags
+- **Reviewer disagreements**: defer to the later or more authoritative reviewer
+- **File-author naming preferences**: defer (e.g., `ball_mono` over `ball_subset_ball`)
