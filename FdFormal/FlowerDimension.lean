@@ -166,13 +166,20 @@ theorem flowerDimension (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
           (ne_of_gt (pow_pos hw_pos g)),
         log_pow] at h_log
     linarith
+  -- Both bounds → 0
+  have h_lo : Tendsto (fun g : ℕ ↦ log c₁ / (↑g * log (↑u : ℝ)))
+      atTop (nhds 0) :=
+    h_denom.const_div_atTop _
+  have h_hi : Tendsto (fun g : ℕ ↦ log 2 / (↑g * log (↑u : ℝ)))
+      atTop (nhds 0) :=
+    h_denom.const_div_atTop _
+  -- Squeeze: residual → 0
   have h_res : Tendsto
       (fun g : ℕ ↦
         (log ↑(flowerVertCount u v g) - ↑g * log ↑(u + v)) /
           (↑g * log (↑u : ℝ)))
       atTop (nhds 0) :=
-    (h_denom.const_div_atTop _).squeeze' (h_denom.const_div_atTop _)
-      h_res_lower h_res_upper
+    h_lo.squeeze' h_hi h_res_lower h_res_upper
   -- Step 5: residual + constant → 0 + constant = constant
   have h_sum := h_res.add
     (tendsto_const_nhds (x := log (↑(u + v) : ℝ) / log (↑u : ℝ)))
