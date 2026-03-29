@@ -78,8 +78,8 @@ theorem flowerHubDist_pos (u v g : ℕ) (hu : 1 < u) :
 
 /-- Hub distance grows strictly between generations. -/
 theorem flowerHubDist_strict_mono (u v g : ℕ) (hu : 1 < u) :
-    flowerHubDist u v g < flowerHubDist u v (g + 1) := by
-  exact lt_mul_of_one_lt_left (flowerHubDist_pos u v g hu) hu
+    flowerHubDist u v g < flowerHubDist u v (g + 1) :=
+  lt_mul_of_one_lt_left (flowerHubDist_pos u v g hu) hu
 
 /-! ### Cast identity -/
 
@@ -96,6 +96,5 @@ noncomputable def flowerHubDistReal (u v g : ℕ) : ℝ :=
 
 /-- The real-valued hub distance is positive when `1 < u`. -/
 theorem flowerHubDistReal_pos (u v g : ℕ) (hu : 1 < u) :
-    0 < flowerHubDistReal u v g := by
-  simp only [flowerHubDistReal]
-  exact Nat.cast_pos.mpr (flowerHubDist_pos u v g hu)
+    0 < flowerHubDistReal u v g :=
+  Nat.cast_pos.mpr (flowerHubDist_pos u v g hu)

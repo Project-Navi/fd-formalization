@@ -112,13 +112,10 @@ theorem pathGraph_edist {n : ℕ} (i j : Fin (n + 1)) :
     · obtain ⟨w', hw'⟩ := pathGraph_walk_le (show j.val ≤ i.val by omega)
       exact ⟨w'.reverse, by rw [Walk.length_reverse, hw']⟩
   apply le_antisymm
-  · -- Upper: edist ≤ walk length = target
-    calc (pathGraph (n + 1)).edist i j
+  · calc (pathGraph (n + 1)).edist i j
         ≤ ↑w.length := edist_le w
       _ = _ := by exact_mod_cast hw
-  · -- Lower: target ≤ every walk length → target ≤ iInf
-    simp only [edist]
-    exact le_iInf fun w' ↦ by exact_mod_cast pathGraph_walk_length_ge w'
+  · exact le_iInf fun w' ↦ by exact_mod_cast pathGraph_walk_length_ge w'
 
 /-! ### Distance formula -/
 
