@@ -150,7 +150,7 @@ def hub1 (u v g : ℕ) : Fin (flowerVertCount u v g)
 | `GadgetPos u v` | Position within a replacement gadget (src, tgt, short, long) |
 | `LocalEdge u v` | Edge index within a gadget: `Fin u ⊕ Fin v` |
 | `FlowerEdge u v g` | Recursive edge index type |
-| `FlowerVert u v g` | Vertex type: `Fin 2 ⊕ (Σ e, GadgetPos)` |
+| `FlowerVert u v g` | Vertex type: `Fin 2 ⊕ Σ (k : Fin g), FlowerEdge u v k.val × (Fin (u-1) ⊕ Fin (v-1))` |
 | `flowerGraph' u v g` | `SimpleGraph` on `FlowerVert` |
 
 ### Structural theorems

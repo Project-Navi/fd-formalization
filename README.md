@@ -40,11 +40,12 @@ This is the ground truth formula that [navi-fractal](https://github.com/Project-
 | Log identities | `log_flowerHubDist_eq` etc. | `FlowerLog` | `log L_g = g · log u` |
 | **Log-ratio limit** | **`flowerDimension`** | **`FlowerDimension`** | **`lim log N_g / log L_g = log(u+v) / log(u)`** |
 
-### Upstream candidate
+### Upstream candidates
 
 | Declaration | File | Topic | Mathlib status |
 |-------------|------|-------|----------------|
-| `SimpleGraph.ball` + 7 core lemmas | `GraphBall` | Open metric ball via `edist` (8 core + convenience lemmas) | No `SimpleGraph.ball` in Mathlib; PR ready to open |
+| `SimpleGraph.ball` + 7 core lemmas | `GraphBall` | Open metric ball via `edist` (8 core + 6 convenience lemmas) | No `SimpleGraph.ball` in Mathlib; PR ready to open |
+| `pathGraph_edist`, `pathGraph_dist` + 2 corollaries | `PathGraphDist` | Distance in path graphs = index difference | No distance lemmas for `pathGraph` in Mathlib |
 
 ## Axiom boundary
 
@@ -70,7 +71,7 @@ lake build --wfail   # fail on any sorry or warning
 
 ```
 FdFormal/
-  GraphBall.lean         — SimpleGraph.ball (open ball via edist), 8 core + convenience lemmas (upstream candidate)
+  GraphBall.lean         — SimpleGraph.ball (open ball via edist), 8 core + 6 convenience lemmas (upstream candidate)
   FlowerGraph.lean       — Hub vertices and structural helpers
   FlowerCounts.lean      — Exact edge/vertex count formulas, bounds, monotonicity
   FlowerDiameter.lean    — Hub-distance scaling L_g = u^g, cast identities
@@ -79,7 +80,7 @@ FdFormal/
   FlowerDimension.lean   — Headline theorem: log-ratio limit = log(u+v) / log(u)
   PathGraphDist.lean     — pathGraph distance lemmas (upstream candidate)
   FlowerConstruction.lean — F2 bridge: SimpleGraph construction + dist = u^g
-  Verify.lean            — #print axioms dashboard (20 declarations)
+  Verify.lean            — #print axioms dashboard (27 declarations)
 ```
 
 ## Mathematical background
@@ -108,9 +109,11 @@ the core contribution. The underlying mathematics is from Rozenfeld et al. 2007.
 
 **What AI tools did**: Claude Opus assisted with Lean 4 syntax, Mathlib API
 navigation, and proof term synthesis. Aristotle (Harmonic) independently proved
-leaf lemmas (positivity, monotonicity, cast identities) via automated proof search.
-These roles are analogous to `omega`, `aesop`, and other proof automation — the
-strategy is human, the term-level search is machine-assisted.
+leaf lemmas (positivity, monotonicity, cast identities) via automated proof search,
+and contributed proof simplification — eliminating intermediate bindings, converting
+tactic proofs to term mode, and inlining redundant variables. These roles are
+analogous to `omega`, `aesop`, and other proof automation — the strategy is human,
+the term-level search and cleanup is machine-assisted.
 
 **Verification**: The final arbiter is the Lean compiler:
 ```bash
