@@ -20,14 +20,14 @@ At generation \(g\), the flower has two hub vertices plus internal vertices cont
 
 ```lean
 def FlowerVert (u v : ℕ) (g : ℕ) : Type :=
-  Sum (Fin 2) (Σ (e : FlowerEdge u v g), GadgetPos u v)
+  Fin 2 ⊕ Σ (k : Fin g), FlowerEdge u v k.val × (Fin (u - 1) ⊕ Fin (v - 1))
 ```
 
-The left summand `Fin 2` gives the two hubs. The right summand pairs each edge index with a position within its replacement gadget.
+The left summand `Fin 2` gives the two hubs. The right summand indexes each internal vertex by three coordinates: the generation `k` at which it was created, the parent edge `e` that was replaced, and a position `Fin (u - 1) ⊕ Fin (v - 1)` within the replacement gadget (short or long path).
 
 ### Gadget positions
 
-Each edge is replaced by two parallel paths of lengths \(u\) and \(v\). The internal vertices of this replacement are:
+Each edge is replaced by two parallel paths of lengths \(u\) and \(v\). The positions within a replacement gadget are described by:
 
 ```lean
 inductive GadgetPos (u v : ℕ)
@@ -37,7 +37,7 @@ inductive GadgetPos (u v : ℕ)
   | long  (j : Fin (v-1))  -- internal vertices on the long path
 ```
 
-This gives \((u-1) + (v-1) = u+v-2\) internal vertices per gadget, matching the counting formula.
+`GadgetPos` is used by the endpoint resolution functions `localSrc` and `localTgt` to track adjacency within each gadget. The actual internal vertex positions in `FlowerVert` are stored as `Fin (u - 1) ⊕ Fin (v - 1)`, giving \((u-1) + (v-1) = u+v-2\) internal vertices per gadget, matching the counting formula.
 
 ### Edge indices
 
