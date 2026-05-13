@@ -44,7 +44,7 @@ This is the ground truth formula that [navi-fractal](https://github.com/Project-
 
 | Declaration | File | Topic | Mathlib status |
 |-------------|------|-------|----------------|
-| `SimpleGraph.ball` + 7 core lemmas | `GraphBall` | Open metric ball via `edist` (8 core + 6 convenience lemmas) | No `SimpleGraph.ball` in Mathlib; PR ready to open |
+| `SimpleGraph.ball` + 7 core lemmas | `GraphBall` | Open metric ball via `edist` (8 core + 6 convenience lemmas) | Merged: [Mathlib #36443](https://github.com/leanprover-community/mathlib4/pull/36443) (2026-04-19, via bors) |
 | `pathGraph_edist`, `pathGraph_dist` + 2 corollaries | `PathGraphDist` | Distance in path graphs = index difference | No distance lemmas for `pathGraph` in Mathlib |
 
 ## Axiom boundary
@@ -71,7 +71,7 @@ lake build --wfail   # fail on any sorry or warning
 
 ```
 FdFormal/
-  GraphBall.lean         — SimpleGraph.ball (open ball via edist), 8 core + 6 convenience lemmas (upstream candidate)
+  GraphBall.lean         — SimpleGraph.ball (open ball via edist), 8 core + 6 convenience lemmas (upstreamed: Mathlib #36443)
   FlowerGraph.lean       — Hub vertices and structural helpers
   FlowerCounts.lean      — Exact edge/vertex count formulas, bounds, monotonicity
   FlowerDiameter.lean    — Hub-distance scaling L_g = u^g, cast identities
