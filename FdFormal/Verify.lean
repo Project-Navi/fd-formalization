@@ -3,7 +3,6 @@ Copyright (c) 2026 Nelson Spence. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nelson Spence
 -/
-import FdFormal.GraphBall
 import FdFormal.FlowerGraph
 import FdFormal.FlowerLog
 import FdFormal.FlowerLogRatio
@@ -27,12 +26,6 @@ All declarations should depend only on `[propext, Classical.choice, Quot.sound]`
 
 verification, axioms, soundness
 -/
-
--- Upstream candidate (GraphBall)
-#print axioms SimpleGraph.ball
-#print axioms SimpleGraph.mem_ball
-#print axioms SimpleGraph.ball_mono
-#print axioms SimpleGraph.center_mem_ball
 
 -- Counting formulas (FlowerCounts)
 #print axioms flowerEdgeCount_eq_pow
