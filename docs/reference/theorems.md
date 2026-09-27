@@ -1,6 +1,6 @@
 # Theorems
 
-Definitions and theorems by file. The tables omit hypotheses (mostly \(1 < u\) and \(u \leq v\)); see the source. The library builds with no `sorry`, and the 27 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
+Definitions and theorems by file. The tables omit hypotheses (mostly \(1 < u\) and \(u \leq v\)); see the source. The library builds with no `sorry`, and the 33 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ---
 
@@ -17,14 +17,19 @@ theorem flowerDimension (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
 ### F2: hub distance (`FlowerConstruction.lean`)
 
 ```lean
-theorem flowerGraph_dist_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
-    (flowerGraph u v g hu huv).dist
-      ((flowerVertEquiv u v g hu huv) (.hub0 u v g))
-      ((flowerVertEquiv u v g hu huv) (.hub1 u v g))
-    = flowerHubDist u v g
+theorem flowerGraph_dist_hub0_hub1 (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+    (flowerGraph u v g hu huv).dist (hub0 u v g) (hub1 u v g) = u ^ g
 ```
 
-The hubs are the images of `FlowerVert.hub0` and `FlowerVert.hub1`; see [Graph Construction](../explanation/graph-construction.md).
+`hub0` and `hub1` are the indices 0 and 1, where `flowerVertEquiv` sends the construction's hubs; see [Graph Construction](../explanation/graph-construction.md).
+
+### F3: log-ratio dimension of the graphs (`FlowerGraphDimension.lean`)
+
+```lean
+theorem flowerGraph_hasLogRatioDimension (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+    HasLogRatioDimension (fun g ↦ flowerGraph u v g hu huv) (hub0 u v) (hub1 u v)
+      (log ↑(u + v) / log ↑u)
+```
 
 ### HasLogRatioDimension (`FlowerLogRatio.lean`)
 
@@ -38,7 +43,7 @@ def HasLogRatioDimension
     atTop (nhds d)
 ```
 
-Defined only; not yet proved for the flower graphs (F3 on the [Roadmap](roadmap.md)).
+For a family of finite graphs with distinguished vertices, the log-ratio of vertex count to their distance tends to \(d\). F3 proves it for the flower graphs.
 
 ---
 
@@ -83,7 +88,7 @@ Defined only; not yet proved for the flower graphs (F3 on the [Roadmap](roadmap.
 
 ## Hubs on `Fin` (`FlowerGraph.lean`)
 
-`hub0`, `hub1 : Fin (flowerVertCount u v g)` are the indices 0 and 1, with `two_le_flowerVertCount` (\(2 \leq N_g\)) and `hub0_ne_hub1`. F2 does not use them yet.
+`hub0`, `hub1 : Fin (flowerVertCount u v g)` are the indices 0 and 1, with `two_le_flowerVertCount` (\(2 \leq N_g\)) and `hub0_ne_hub1`.
 
 ---
 
@@ -98,7 +103,9 @@ Defined only; not yet proved for the flower graphs (F3 on the [Roadmap](roadmap.
 | `flowerVert_card` | `Fintype.card (FlowerVert u v g) = flowerVertCount u v g` |
 | `flowerGraph'_connected` | the flower graph is connected |
 | `flowerGraph'_dist_hubs` | hub distance \(u^g\) on `FlowerVert` |
-| `flowerGraph_dist_hubs` | F2 on `Fin` (see [above](#f2-hub-distance-flowerconstructionlean)) |
+| `flowerVertEquiv_hub0`, `flowerVertEquiv_hub1` | `flowerVertEquiv` sends the hubs to `hub0`, `hub1` |
+| `flowerGraph_dist_hubs` | hub distance on `Fin`, via `flowerVertEquiv` |
+| `flowerGraph_dist_hub0_hub1` | F2 (see [above](#f2-hub-distance-flowerconstructionlean)) |
 
 ---
 

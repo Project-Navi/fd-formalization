@@ -15,14 +15,15 @@ Theorem targets for the Project Navi formalization program.
 ## Shipped
 
 - **F1: log-ratio limit** (`FlowerDimension.lean`). \(\lim_{g \to \infty} \log N_g / \log L_g = \log(u+v)/\log u\) for the recurrence-defined counts, by a squeeze.
-- **F2: hub distance** (`FlowerConstruction.lean`). The explicit flower graph on `FlowerVert` / `Fin` has hub distance \(u^g\): walk upper bound, rank lower bound.
+- **F2: hub distance** (`FlowerConstruction.lean`). The explicit flower graph on `Fin` has distance \(u^g\) between its hubs, the indices 0 and 1: walk upper bound, rank lower bound.
+- **F3: log-ratio dimension of the graphs** (`FlowerGraphDimension.lean`). `HasLogRatioDimension` for `flowerGraph` between `hub0` and `hub1`, from F1, F2 and \(\lvert\mathrm{Fin}\,n\rvert = n\).
 - **SimpleGraph.ball** (`GraphBall.lean`). Open metric ball via `edist` with 7 core lemmas; upstreamed to Mathlib.
 
 ---
 
 ## Next
 
-**F3: `HasLogRatioDimension` for `flowerGraph`**, i.e. F1 for the constructed graphs. It follows from F1, F2 and \(\lvert\mathrm{Fin}\,n\rvert = n\) when the distinguished vertices are F2's hubs; stating it with the `Fin`-indexed `hub0`/`hub1` first needs an equivalence that sends the hubs to 0 and 1.
+A formal box-counting dimension for graph families, and its value for the flowers; the physics literature identifies it with the F3 limit.
 
 ---
 
@@ -66,7 +67,7 @@ Software and calibration claims, not theorems.
 
 ## Sequencing
 
-1. **A:** F3.
+1. **A:** box-counting dimension for the flowers.
 2. **B:** F4--F6.
 3. **C:** F7--F8.
 4. Conjectures and empirical claims stay labeled as such.
