@@ -9,8 +9,6 @@ lake exe cache get   # prebuilt Mathlib
 lake build --wfail   # warnings, including sorry, are errors
 ```
 
-`lake build` compiles the modules imported by `FdFormal.lean`. `PathGraphDist.lean` is standalone: `lake build +FdFormal.PathGraphDist`.
-
 ## Verify
 
 ```bash
@@ -18,7 +16,7 @@ lake env lean -DwarningAsError=true FdFormal/Verify.lean   # axiom dashboard
 lake lint                                                 # Mathlib linters
 ```
 
-`Verify.lean` prints the axioms of 27 key declarations; each should use only `propext`, `Classical.choice` and `Quot.sound`. CI checks this.
+`Verify.lean` prints the axioms of 33 key declarations; each should use only `propext`, `Classical.choice` and `Quot.sound`. CI checks this.
 
 ## Files
 
@@ -31,6 +29,7 @@ lake lint                                                 # Mathlib linters
 | `FlowerDimension` | F1: log-ratio limit |
 | `FlowerLogRatio` | `HasLogRatioDimension` (definition) |
 | `FlowerConstruction` | F2: explicit graph and hub distance |
+| `FlowerGraphDimension` | F3: log-ratio dimension of the graphs |
 | `GraphBall` | `SimpleGraph.ball` (upstreamed to Mathlib) |
 | `PathGraphDist` | distances in `pathGraph` |
 | `Verify` | axiom dashboard |

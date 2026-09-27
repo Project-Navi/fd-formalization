@@ -74,7 +74,7 @@ private theorem pathGraph_walk_le {n : ℕ} {i j : Fin (n + 1)} (hij : i.val ≤
     ∃ w : (pathGraph (n + 1)).Walk i j, w.length = j.val - i.val := by
   induction j using Fin.inductionOn with
   | zero =>
-    have hi : i = 0 := by ext; omega
+    have hi : i = 0 := Fin.le_zero_iff.mp hij
     exact hi ▸ ⟨.nil, by simp⟩
   | succ j ih =>
     by_cases h : i.val ≤ j.val
@@ -82,7 +82,8 @@ private theorem pathGraph_walk_le {n : ℕ} {i j : Fin (n + 1)} (hij : i.val ≤
       have hadj : (pathGraph (n + 1)).Adj j.castSucc j.succ := by
         rw [pathGraph_adj]; left; simp [Fin.val_succ, Fin.val_castSucc]
       exact ⟨w.append (.cons hadj .nil), by simp [hw]; omega⟩
-    · have hi : i = j.succ := Fin.ext (by omega)
+    · have hj : (j.succ : ℕ) = (j : ℕ) + 1 := Fin.val_succ j
+      have hi : i = j.succ := Fin.ext (by omega)
       subst hi; exact ⟨.nil, by simp⟩
 
 /-- Any walk in `pathGraph` has length ≥ the index difference between endpoints.
@@ -123,7 +124,7 @@ theorem pathGraph_edist {n : ℕ} (i j : Fin (n + 1)) :
 theorem pathGraph_dist {n : ℕ} (i j : Fin (n + 1)) :
     (pathGraph (n + 1)).dist i j =
       if i.val ≤ j.val then j.val - i.val else i.val - j.val := by
-  simp [SimpleGraph.dist, pathGraph_edist, ENat.toNat_coe]
+  rw [SimpleGraph.dist, pathGraph_edist, ENat.toNat_coe]
 
 /-- Distance from `0` to `Fin.last n` in `pathGraph (n + 1)` is `n`. -/
 theorem pathGraph_dist_zero_last (n : ℕ) :

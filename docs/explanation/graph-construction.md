@@ -1,6 +1,6 @@
 # Graph Construction
 
-F2 builds the \((u,v)\)-flower as an explicit `SimpleGraph` and proves that its hub distance is \(u^g\). Everything here is in `FlowerConstruction.lean`.
+F2 builds the \((u,v)\)-flower as an explicit `SimpleGraph` and proves that its hub distance is \(u^g\) (`FlowerConstruction.lean`); F3 turns this into the log-ratio dimension of the graphs (`FlowerGraphDimension.lean`).
 
 ---
 
@@ -47,14 +47,23 @@ theorem flowerVert_card (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     Fintype.card (FlowerVert u v g) = flowerVertCount u v g
 ```
 
-`flowerVertEquiv` is `Fintype.equivFinOfCardEq` applied to this, and `flowerGraph` is `flowerGraph'` transported along it:
+`flowerVertEquiv : FlowerVert u v g ≃ Fin (flowerVertCount u v g)` lists the hubs first, then the internal vertices, so it sends `FlowerVert.hub0` and `FlowerVert.hub1` to `hub0` and `hub1`, the indices 0 and 1 (`flowerVertEquiv_hub0`, `flowerVertEquiv_hub1`). `flowerGraph` is `flowerGraph'` transported along it, and F2 reads:
 
 ```lean
-theorem flowerGraph_dist_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
-    (flowerGraph u v g hu huv).dist
-      ((flowerVertEquiv u v g hu huv) (.hub0 u v g))
-      ((flowerVertEquiv u v g hu huv) (.hub1 u v g))
-    = flowerHubDist u v g
+theorem flowerGraph_dist_hub0_hub1 (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+    (flowerGraph u v g hu huv).dist (hub0 u v g) (hub1 u v g) = u ^ g
 ```
 
-`Fintype.equivFinOfCardEq` is not canonical, so the hubs' images need not be `0` and `1`; the `Fin`-indexed `hub0`/`hub1` in `FlowerGraph.lean` are not yet tied to this construction.
+(`flowerGraph_dist_hubs` states the same for the images of the hubs, with `flowerHubDist u v g`.)
+
+---
+
+## F3: log-ratio dimension of the graphs
+
+`FlowerGraphDimension.lean` combines F1, F2 and \(\lvert\mathrm{Fin}\,n\rvert = n\):
+
+```lean
+theorem flowerGraph_hasLogRatioDimension (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+    HasLogRatioDimension (fun g ↦ flowerGraph u v g hu huv) (hub0 u v) (hub1 u v)
+      (log ↑(u + v) / log ↑u)
+```

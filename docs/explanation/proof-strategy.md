@@ -26,13 +26,13 @@ This avoids taking the log of the exact sum \((w-2)\,w^g + w\).
 
 ## F2: the graph
 
-F1 is about the recurrences. F2 builds the flower as an explicit `SimpleGraph` on \(\mathrm{Fin}\,N_g\) and proves that the distance between its two hubs is \(L_g = u^g\): an explicit walk gives the upper bound and a rank potential the lower bound. See [Graph Construction](graph-construction.md).
+F1 is about the recurrences. F2 builds the flower as an explicit `SimpleGraph` on \(\mathrm{Fin}\,N_g\) and proves that the distance between its hubs, the indices 0 and 1, is \(L_g = u^g\): an explicit walk gives the upper bound and a rank potential the lower bound. Since the graph has \(N_g\) vertices, F1 and F2 give F3: the graphs themselves have log-ratio dimension \(\log w / \log u\). See [Graph Construction](graph-construction.md).
 
 ---
 
 ## Axioms
 
-The 27 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
+The 33 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ---
 
