@@ -1,116 +1,60 @@
 # Graph Construction
 
-The F2 bridge theorem proves that the \((u,v)\)-flower, constructed as an explicit `SimpleGraph`, has hub distance exactly \(u^g\). This page explains the construction strategy and the distance proof.
+F2 builds the \((u,v)\)-flower as an explicit `SimpleGraph` and proves that its hub distance is \(u^g\). Everything here is in `FlowerConstruction.lean`.
 
 ---
 
-## The construction problem
-
-The log-ratio convergence theorem (F1) works with pure arithmetic --- recurrences for vertex count \(N_g\) and hub distance \(L_g\). But to connect this to graph theory, we need an actual `SimpleGraph` whose `SimpleGraph.dist` matches the arithmetic formula. This is the F2 bridge.
-
-The challenge is that `SimpleGraph.dist` is defined as the minimum walk length, which requires constructing a concrete graph, proving it is connected, and bounding the distance from both above and below.
-
----
-
-## Structured gadgets
-
-### Vertex type
-
-At generation \(g\), the flower has two hub vertices plus internal vertices contributed by each edge replacement. The vertex type is:
+## Types
 
 ```lean
 def FlowerVert (u v : ℕ) (g : ℕ) : Type :=
   Fin 2 ⊕ Σ (k : Fin g), FlowerEdge u v k.val × (Fin (u - 1) ⊕ Fin (v - 1))
-```
 
-The left summand `Fin 2` gives the two hubs. The right summand indexes each internal vertex by three coordinates: the generation `k` at which it was created, the parent edge `e` that was replaced, and a position `Fin (u - 1) ⊕ Fin (v - 1)` within the replacement gadget (short or long path).
-
-### Gadget positions
-
-Each edge is replaced by two parallel paths of lengths \(u\) and \(v\). The positions within a replacement gadget are described by:
-
-```lean
-inductive GadgetPos (u v : ℕ)
-  | src                    -- source endpoint
-  | tgt                    -- target endpoint
-  | short (i : Fin (u-1))  -- internal vertices on the short path
-  | long  (j : Fin (v-1))  -- internal vertices on the long path
-```
-
-`GadgetPos` is used by the endpoint resolution functions `localSrc` and `localTgt` to track adjacency within each gadget. The actual internal vertex positions in `FlowerVert` are stored as `Fin (u - 1) ⊕ Fin (v - 1)`, giving \((u-1) + (v-1) = u+v-2\) internal vertices per gadget, matching the counting formula.
-
-### Edge indices
-
-Edge indices grow recursively --- each generation-\((g+1)\) edge lives inside a gadget of a generation-\(g\) edge:
-
-```lean
 def FlowerEdge (u v : ℕ) : ℕ → Type
   | 0     => Unit
-  | g + 1 => FlowerEdge u v g × LocalEdge u v
+  | g + 1 => FlowerEdge u v g × LocalEdge u v   -- LocalEdge u v := Fin u ⊕ Fin v
 ```
 
-where `LocalEdge u v = Fin u ⊕ Fin v` indexes the \(u + v\) sub-edges within a gadget.
+`Fin 2` holds the hubs `FlowerVert.hub0` and `FlowerVert.hub1`. Every other vertex records the generation `k` that created it, the edge it replaced, and its position on the short (length \(u\)) or long (length \(v\)) path: \(u + v - 2\) internal vertices per gadget. `GadgetPos` (`src`, `tgt`, `short i`, `long j`) names positions in a gadget, `localSrc`/`localTgt` give the endpoints of each local edge, and `edgeEndpoints` resolves them recursively.
 
 ---
 
 ## Adjacency
 
-The `SimpleGraph` is defined by a symmetric, irreflexive adjacency relation `flowerAdj'` that is built recursively:
-
-- **Base case** (\(g = 0\)): the two hubs are adjacent
-- **Recursive case** (\(g + 1\)): two vertices are adjacent if they are consecutive positions within the same gadget's short path or long path
-
-The key structural lemmas prove that endpoints of consecutive gadget positions match up correctly:
-
-- `short_tgt_eq_succ_src` --- consecutive short-path edges share a vertex
-- `long_tgt_eq_succ_src` --- consecutive long-path edges share a vertex
-- `short_first_eq_embed_src` --- the first short-path edge starts at the gadget source
-- `short_last_eq_embed_tgt` --- the last short-path edge ends at the gadget target
+`flowerAdj' a b` holds when some edge has endpoints \(\{a, b\}\) (`edgeSrc`, `edgeTgt`); `flowerGraph'` is the resulting graph on `FlowerVert`. Lemmas such as `short_tgt_eq_succ_src`, `short_first_eq_embed_src` and `short_last_eq_embed_tgt` show that consecutive gadget edges share endpoints.
 
 ---
 
-## Distance proof
+## Distance
 
-The hub distance proof has two directions:
+- **Upper bound.** `flowerGraph'_walk_hubs`: by induction on \(g\), `lift_walk` replaces each edge of a hub-to-hub walk with a short path of length \(u\), giving a walk of length \(u^g\).
+- **Lower bound.** `FlowerVert.rank` is 0 at `hub0`, \(u^g\) at `hub1`, and grows by at most 1 along an edge (`rank_adj_le`), so every hub-to-hub walk has length at least \(u^g\) (`walk_length_ge_rank`, `flowerGraph'_dist_ge`).
 
-### Lower bound (projection)
-
-A projection map `FlowerVert.project` collapses generation-\((g+1)\) vertices onto generation-\(g\) vertices by mapping each gadget's short-path internals to its source. The key property:
-
-> If two vertices are adjacent, their projections are either adjacent or equal.
-
-This means any walk of length \(\ell\) in generation \(g+1\) projects to a walk of length \(\leq \ell\) in generation \(g\). By induction, `dist hub0 hub1 ≥ u^g`.
-
-### Upper bound (explicit walk)
-
-An explicit walk of length exactly \(u^g\) is constructed between the hubs by recursively following the short path through each gadget. The walk `flowerGraph'_walk_hubs` is built by induction on \(g\), lifting generation-\(g\) walks into generation-\((g+1)\) walks via the gadget structure.
-
-### Combined
-
-Since `dist hub0 hub1 ≥ u^g` and there exists a walk of length `u^g`, we get `dist hub0 hub1 = u^g`.
+Together they give `flowerGraph'_dist_hubs`. The projection lemmas `FlowerVert.project` and `project_adj_or_eq`, from an earlier approach, remain in the file but are not used.
 
 ---
 
-## Transport to Fin
+## Connectivity
 
-The `SimpleGraph` is initially defined on `FlowerVert u v g` (a sum type). To match the arithmetic counting formulas, we transport to `Fin (flowerVertCount u v g)` via `Fintype.equivFinOfCardEq`, using the cardinality theorem:
+`flowerGraph'_connected` goes by induction: lifted walks reach every embedded vertex from `hub0`, and each new vertex is reachable from its gadget's source (`new_short_reachable`, `new_long_reachable`).
+
+---
+
+## Transport to `Fin`
 
 ```lean
-flowerVert_card : Fintype.card (FlowerVert u v g) = flowerVertCount u v g
+theorem flowerVert_card (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+    Fintype.card (FlowerVert u v g) = flowerVertCount u v g
 ```
 
-The final F2 bridge theorem states:
+`flowerVertEquiv` is `Fintype.equivFinOfCardEq` applied to this, and `flowerGraph` is `flowerGraph'` transported along it:
 
 ```lean
-flowerGraph_dist_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+theorem flowerGraph_dist_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     (flowerGraph u v g hu huv).dist
       ((flowerVertEquiv u v g hu huv) (.hub0 u v g))
       ((flowerVertEquiv u v g hu huv) (.hub1 u v g))
     = flowerHubDist u v g
 ```
 
----
-
-## Connectivity
-
-The connectivity proof (`flowerGraph'_connected`) uses the gadget chain lemma: within each gadget, the \(u+1\) vertices along the short path form a connected chain. Since the short path connects gadget source to gadget target, and the hub vertices are the source and target of the generation-0 edge, the full graph is connected by induction.
+`Fintype.equivFinOfCardEq` is not canonical, so the hubs' images need not be `0` and `1`; the `Fin`-indexed `hub0`/`hub1` in `FlowerGraph.lean` are not yet tied to this construction.
