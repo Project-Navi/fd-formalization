@@ -28,7 +28,10 @@ fully proved with zero sorry.
 - `FlowerVert` — vertex type (hubs + sigma of internal vertices)
 - `edgeEndpoints` — endpoint resolution via recursive gadget expansion
 - `flowerGraph'` — the (u,v)-flower as a `SimpleGraph` on `FlowerVert`
-- `FlowerVert.project` — projection map for lower bound proof
+- `FlowerVert.rank` — potential used for the lower bound on hub distance
+- `flowerVertEquiv` — equivalence to `Fin`, sending the hubs to `0` and `1`
+- `flowerGraph` — the (u,v)-flower as a `SimpleGraph` on `Fin`
+- `FlowerVert.project` — projection map (not used by the final proof)
 
 ## Main statements
 
@@ -47,14 +50,17 @@ fully proved with zero sorry.
 - `flowerGraph'_connected` — connectivity of the flower graph
 - `flowerGraph'_dist_hubs` — hub distance equals `u^g`
 - `flowerGraph_dist_hubs` — F2 bridge on `Fin`
+- `flowerVertEquiv_hub0`, `flowerVertEquiv_hub1` — the hubs are `hub0` and `hub1`
+- `flowerGraph_dist_hub0_hub1` — `dist hub0 hub1 = u^g` on `Fin`
 
 ## Implementation notes
 
 Each edge is replaced by two parallel paths of lengths `u` and `v`.
 Internal vertices are `Fin (u-1) ⊕ Fin (v-1)`. Edges at generation `g`
 are `FlowerEdge u v g`, defined recursively (parent × local edge),
-avoiding division/modular arithmetic on `Fin`. The projection map
-collapses each gadget traversal to a single edge for the lower bound.
+avoiding division/modular arithmetic on `Fin`. The lower bound on hub
+distance uses the rank potential `FlowerVert.rank`, which changes by at
+most 1 along an edge; the projection lemmas are not needed for it.
 
 ## Tags
 
@@ -825,10 +831,28 @@ theorem flowerVert_card (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     simp only [h1] at ih ⊢
     linarith [Nat.mul_comm (Fintype.card (FlowerEdge u v g)) (u + v - 2)]
 
-/-- Equivalence to `Fin (flowerVertCount u v g)`. -/
+/-- Equivalence to `Fin (flowerVertCount u v g)`. The hubs come first, so they go to `0` and
+`1` (`flowerVertEquiv_hub0`, `flowerVertEquiv_hub1`); the internal vertices follow in an
+arbitrary order. -/
 noncomputable def flowerVertEquiv (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     FlowerVert u v g ≃ Fin (flowerVertCount u v g) :=
-  Fintype.equivFinOfCardEq (flowerVert_card u v g hu huv)
+  let e : FlowerVert u v g ≃ Fin (2 + _) :=
+    (Equiv.sumCongr (Equiv.refl (Fin 2)) (Fintype.equivFin
+      (Σ (k : Fin g), FlowerEdge u v k.val × (Fin (u - 1) ⊕ Fin (v - 1))))).trans finSumFinEquiv
+  e.trans (finCongr ((Fintype.card_fin _).symm.trans
+    ((Fintype.card_congr e).symm.trans (flowerVert_card u v g hu huv))))
+
+/-- `flowerVertEquiv` sends `FlowerVert.hub0` to `hub0`, the index `0`. -/
+@[simp]
+theorem flowerVertEquiv_hub0 (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+    flowerVertEquiv u v g hu huv (.hub0 u v g) = hub0 u v g :=
+  rfl
+
+/-- `flowerVertEquiv` sends `FlowerVert.hub1` to `hub1`, the index `1`. -/
+@[simp]
+theorem flowerVertEquiv_hub1 (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+    flowerVertEquiv u v g hu huv (.hub1 u v g) = hub1 u v g :=
+  rfl
 
 /-- The (u,v)-flower on `Fin`. -/
 noncomputable def flowerGraph (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
@@ -868,7 +892,14 @@ theorem flowerGraph_dist_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
           (e.symm_apply_apply _) (e.symm_apply_apply _)).length := SimpleGraph.dist_le _
       _ = G'.dist _ _ := by rw [SimpleGraph.Walk.length_copy, SimpleGraph.Walk.length_map, hw']
 
-/-! ## Projection map (for lower bound proof)
+/-- **F2 with the `Fin`-indexed hubs**: in `flowerGraph u v g`, the distance between
+`hub0` (index `0`) and `hub1` (index `1`) is `u ^ g`. -/
+theorem flowerGraph_dist_hub0_hub1 (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
+    (flowerGraph u v g hu huv).dist (hub0 u v g) (hub1 u v g) = u ^ g := by
+  rw [← flowerVertEquiv_hub0 u v g hu huv, ← flowerVertEquiv_hub1 u v g hu huv,
+    flowerGraph_dist_hubs, flowerHubDist_eq_pow]
+
+/-! ## Projection map (not used by the final proof)
 
 The projection collapses each replacement gadget to a single edge,
 mapping a gen g+1 walk to a gen g walk.
