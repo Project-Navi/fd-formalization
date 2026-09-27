@@ -25,6 +25,11 @@ identification is not formalized.
 
 - `flowerGraph_hasLogRatioDimension` — `HasLogRatioDimension` for the flower graphs
 
+## Implementation notes
+
+The proof rewrites `Fintype.card (Fin N_g)` and the hub distance, then applies
+`flowerDimension`; `flowerVertEquiv` places the hubs at indices `0` and `1`.
+
 ## References
 
 - [Rozenfeld2007] §2, dimension as log-ratio limit for flower graphs.

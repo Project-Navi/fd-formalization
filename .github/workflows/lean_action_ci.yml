@@ -51,6 +51,7 @@ jobs:
       - name: Check axioms
         shell: bash
         run: |
+          set -o pipefail
           lake env lean -DwarningAsError=true FdFormal/Verify.lean 2>&1 | tee "$RUNNER_TEMP/axioms.txt"
           expected=$(awk '/^#print axioms /{ n++ } END { print n + 0 }' FdFormal/Verify.lean)
           # Rejoin wrapped axiom lists, then check every record against the allowlist.
