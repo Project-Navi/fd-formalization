@@ -1,0 +1,30 @@
+/-
+This file was edited by Aristotle (https://aristotle.harmonic.fun).
+
+Lean version: leanprover/lean4:v4.24.0
+Mathlib version: f897ebcf72cd16f89ab4577d0c826cd14afaafc7
+This project request had uuid: 05141404-a53a-4402-8395-5e377e7b9ea3
+
+Co-authored-by: Aristotle (Harmonic) <aristotle-harmonic@harmonic.fun>
+
+The following was proved by Aristotle:
+
+- theorem flowerEdge_card (u v g : ℕ) :
+    Fintype.card (FlowerEdge u v g) = (u + v) ^ g
+
+Raw proof (before cleanup for 4.28.0):
+
+  induction' g with g ih;
+  · exact?;
+  · rw [ pow_succ' ];
+    rw [ ← ih, mul_comm ];
+    exact Fintype.card_prod _ _ |> Eq.trans <| by simp +decide [ Fintype.card_sum ]
+
+Cleaned proof integrated into FlowerConstruction.lean:
+
+  induction g with
+  | zero => simp [FlowerEdge]
+  | succ g ih =>
+    simp only [FlowerEdge, Fintype.card_prod, Fintype.card_sum, Fintype.card_fin, ih, pow_succ,
+      mul_comm]
+-/

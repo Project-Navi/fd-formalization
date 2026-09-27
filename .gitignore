@@ -4,3 +4,6 @@
 /build
 /archive
 /docs/internal
+
+# Zensical build output
+/site

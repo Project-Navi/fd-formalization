@@ -1,0 +1,171 @@
+/-
+This file was edited by Aristotle (https://aristotle.harmonic.fun).
+
+Lean version: leanprover/lean4:v4.24.0
+Mathlib version: f897ebcf72cd16f89ab4577d0c826cd14afaafc7
+This project request had uuid: c955f44a-2bad-421d-8da2-77d6daba4607
+
+To cite Aristotle, tag @Aristotle-Harmonic on GitHub PRs/issues, and add as co-author to commits:
+Co-authored-by: Aristotle (Harmonic) <aristotle-harmonic@harmonic.fun>
+
+The following was proved by Aristotle:
+
+- theorem FlowerVert.project_embed (u v g : ℕ) (x : FlowerVert u v g) :
+    FlowerVert.project u v g (FlowerVert.embed u v g x) = x
+
+- theorem FlowerVert.project_hub0 (u v g : ℕ) :
+    FlowerVert.project u v g (.hub0 u v (g + 1)) = .hub0 u v g
+
+- theorem FlowerVert.project_hub1 (u v g : ℕ) :
+    FlowerVert.project u v g (.hub1 u v (g + 1)) = .hub1 u v g
+
+- theorem FlowerVert.project_new (u v g : ℕ) (parent : FlowerEdge u v g)
+    (pos : Fin (u - 1) ⊕ Fin (v - 1)) :
+    FlowerVert.project u v g
+      (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, pos⟩) =
+    edgeSrc u v g parent
+-/
+
+/-
+Copyright (c) 2026 Nelson Spence. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Nelson Spence
+-/
+/-
+Aristotle Batch 2C — Embed/project structural lemmas
+
+Target: structural properties of embed and project maps.
+These are the corridor lemmas for the lower bound projection argument.
+
+Strategy:
+  - project ∘ embed = id (left inverse)
+  - project preserves hubs
+  - new vertices project to edgeSrc of their parent
+  - if a ~ b at gen g+1, then project(a) ~ project(b) or project(a) = project(b)
+-/
+import Mathlib.Tactic
+import Mathlib.Combinatorics.SimpleGraph.Metric
+
+
+set_option relaxedAutoImplicit false
+
+set_option autoImplicit false
+
+/-! ## Types (from FlowerConstruction.lean) -/
+
+inductive GadgetPos (u v : ℕ)
+  | src
+  | tgt
+  | short (i : Fin (u - 1))
+  | long  (j : Fin (v - 1))
+
+abbrev LocalEdge (u v : ℕ) := Fin u ⊕ Fin v
+
+def localSrc (u v : ℕ) : LocalEdge u v → GadgetPos u v
+  | .inl ⟨0, _⟩     => .src
+  | .inl ⟨i + 1, h⟩ => .short ⟨i, by omega⟩
+  | .inr ⟨0, _⟩     => .src
+  | .inr ⟨j + 1, h⟩ => .long ⟨j, by omega⟩
+
+def localTgt (u v : ℕ) : LocalEdge u v → GadgetPos u v
+  | .inl i => if h : i.val + 1 = u then .tgt else .short ⟨i.val, by omega⟩
+  | .inr j => if h : j.val + 1 = v then .tgt else .long ⟨j.val, by omega⟩
+
+def FlowerEdge (u v : ℕ) : ℕ → Type
+  | 0     => Unit
+  | g + 1 => FlowerEdge u v g × LocalEdge u v
+
+instance instFintypeFlowerEdge (u v g : ℕ) : Fintype (FlowerEdge u v g) := by
+  induction g with
+  | zero => exact inferInstanceAs (Fintype Unit)
+  | succ g ih => exact inferInstanceAs (Fintype (_ × _))
+
+def FlowerVert (u v : ℕ) (g : ℕ) : Type :=
+  Fin 2 ⊕ Σ (k : Fin g), FlowerEdge u v k.val × (Fin (u - 1) ⊕ Fin (v - 1))
+
+def FlowerVert.hub0 (u v g : ℕ) : FlowerVert u v g := .inl 0
+
+def FlowerVert.hub1 (u v g : ℕ) : FlowerVert u v g := .inl 1
+
+def FlowerVert.embed (u v g : ℕ) : FlowerVert u v g → FlowerVert u v (g + 1)
+  | .inl h => .inl h
+  | .inr ⟨k, e, pos⟩ => .inr ⟨k.castSucc, e, pos⟩
+
+/-! ## Edge endpoints -/
+
+def edgeEndpoints (u v : ℕ) :
+    (g : ℕ) → FlowerEdge u v g → FlowerVert u v g × FlowerVert u v g
+  | 0, () => (.hub0 u v 0, .hub1 u v 0)
+  | g + 1, (parent, localE) =>
+    let (pSrc, pTgt) := edgeEndpoints u v g parent
+    let resolve : GadgetPos u v → FlowerVert u v (g + 1) := fun
+      | .src     => FlowerVert.embed u v g pSrc
+      | .tgt     => FlowerVert.embed u v g pTgt
+      | .short i => .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl i⟩
+      | .long j  => .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr j⟩
+    (resolve (localSrc u v localE), resolve (localTgt u v localE))
+
+def edgeSrc (u v g : ℕ) (e : FlowerEdge u v g) : FlowerVert u v g :=
+  (edgeEndpoints u v g e).1
+
+def edgeTgt (u v g : ℕ) (e : FlowerEdge u v g) : FlowerVert u v g :=
+  (edgeEndpoints u v g e).2
+
+/-! ## Adjacency -/
+
+def flowerAdj' (u v g : ℕ) (a b : FlowerVert u v g) : Prop :=
+  ∃ e : FlowerEdge u v g,
+    (a = edgeSrc u v g e ∧ b = edgeTgt u v g e) ∨
+    (b = edgeSrc u v g e ∧ a = edgeTgt u v g e)
+
+/-! ## Projection map -/
+
+def FlowerVert.project (u v g : ℕ) : FlowerVert u v (g + 1) → FlowerVert u v g
+  | .inl h => .inl h
+  | .inr ⟨k, e, pos⟩ =>
+    if h : k.val < g then
+      .inr ⟨⟨k.val, h⟩, e, pos⟩
+    else
+      have hk : k.val = g := by omega
+      edgeSrc u v g (hk ▸ e)
+
+/-! ## Target lemmas -/
+
+/-- Project is a left inverse of embed: projecting an embedded vertex
+recovers the original. -/
+theorem FlowerVert.project_embed (u v g : ℕ) (x : FlowerVert u v g) :
+    FlowerVert.project u v g (FlowerVert.embed u v g x) = x := by
+  cases x <;> unfold FlowerVert.project FlowerVert.embed <;> aesop
+
+/-- Hub 0 projects to hub 0. -/
+theorem FlowerVert.project_hub0 (u v g : ℕ) :
+    FlowerVert.project u v g (.hub0 u v (g + 1)) = .hub0 u v g := by
+  rfl
+
+/-- Hub 1 projects to hub 1. -/
+theorem FlowerVert.project_hub1 (u v g : ℕ) :
+    FlowerVert.project u v g (.hub1 u v (g + 1)) = .hub1 u v g := by
+  rfl
+
+/-- A new vertex at generation g projects to the source endpoint of its
+parent edge. -/
+theorem FlowerVert.project_new (u v g : ℕ) (parent : FlowerEdge u v g)
+    (pos : Fin (u - 1) ⊕ Fin (v - 1)) :
+    FlowerVert.project u v g
+      (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, pos⟩) =
+    edgeSrc u v g parent := by
+  unfold FlowerVert.project; aesop;
+
+/- Aristotle took a wrong turn (reason code: 9). Please try again. -/
+/-- Projection preserves or collapses adjacency: if a and b are adjacent
+at gen g+1, then either project(a) = project(b) or project(a) and
+project(b) are adjacent at gen g.
+
+This is the key structural lemma for the lower bound distance proof. -/
+theorem project_adj_or_eq (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
+    (a b : FlowerVert u v (g + 1))
+    (hadj : flowerAdj' u v (g + 1) a b) :
+    FlowerVert.project u v g a = FlowerVert.project u v g b ∨
+    flowerAdj' u v g (FlowerVert.project u v g a)
+      (FlowerVert.project u v g b) := by
+  sorry

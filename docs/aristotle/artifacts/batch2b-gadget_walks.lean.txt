@@ -1,0 +1,187 @@
+/-
+This file was edited by Aristotle (https://aristotle.harmonic.fun).
+
+Lean version: leanprover/lean4:v4.24.0
+Mathlib version: f897ebcf72cd16f89ab4577d0c826cd14afaafc7
+This project request had uuid: 92a120b9-bed7-47d5-8bd8-3f54d70e5b6b
+
+To cite Aristotle, tag @Aristotle-Harmonic on GitHub PRs/issues, and add as co-author to commits:
+Co-authored-by: Aristotle (Harmonic) <aristotle-harmonic@harmonic.fun>
+
+The following was proved by Aristotle:
+
+- theorem resolve_localEdge_adj (u v g : ℕ) (parent : FlowerEdge u v g)
+    (localE : LocalEdge u v) :
+    flowerAdj' u v (g + 1)
+      (edgeSrc u v (g + 1) (parent, localE))
+      (edgeTgt u v (g + 1) (parent, localE))
+
+- theorem short_path_consecutive_adj (u v g : ℕ) (parent : FlowerEdge u v g)
+    (i : Fin u) :
+    flowerAdj' u v (g + 1)
+      (edgeSrc u v (g + 1) (parent, .inl i))
+      (edgeTgt u v (g + 1) (parent, .inl i))
+
+- theorem long_path_consecutive_adj (u v g : ℕ) (parent : FlowerEdge u v g)
+    (j : Fin v) :
+    flowerAdj' u v (g + 1)
+      (edgeSrc u v (g + 1) (parent, .inr j))
+      (edgeTgt u v (g + 1) (parent, .inr j))
+
+- theorem resolve_src_eq_embed_edgeSrc (u v g : ℕ) (parent : FlowerEdge u v g)
+    (localE : LocalEdge u v) (hs : localSrc u v localE = .src) :
+    edgeSrc u v (g + 1) (parent, localE) =
+      FlowerVert.embed u v g (edgeSrc u v g parent)
+
+- theorem resolve_tgt_eq_embed_edgeTgt (u v g : ℕ) (parent : FlowerEdge u v g)
+    (localE : LocalEdge u v) (ht : localTgt u v localE = .tgt) :
+    edgeTgt u v (g + 1) (parent, localE) =
+      FlowerVert.embed u v g (edgeTgt u v g parent)
+-/
+
+/-
+Copyright (c) 2026 Nelson Spence. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Nelson Spence
+-/
+/-
+Aristotle Batch 2B — Gadget-local walk constructors
+
+Target: constructive walk lemmas within a single replacement gadget.
+These feed both the connectivity proof and the upper bound.
+
+Strategy:
+  - Show consecutive gadget positions are adjacent via flowerAdj'
+  - Construct explicit walk of length u along short path (src → tgt)
+  - Construct explicit walk of length v along long path (src → tgt)
+-/
+import Mathlib.Tactic
+import Mathlib.Combinatorics.SimpleGraph.Metric
+
+
+set_option relaxedAutoImplicit false
+
+set_option autoImplicit false
+
+/-! ## Layer 0: Local replacement gadget -/
+
+inductive GadgetPos (u v : ℕ)
+  | src
+  | tgt
+  | short (i : Fin (u - 1))
+  | long  (j : Fin (v - 1))
+
+abbrev LocalEdge (u v : ℕ) := Fin u ⊕ Fin v
+
+def localSrc (u v : ℕ) : LocalEdge u v → GadgetPos u v
+  | .inl ⟨0, _⟩     => .src
+  | .inl ⟨i + 1, h⟩ => .short ⟨i, by omega⟩
+  | .inr ⟨0, _⟩     => .src
+  | .inr ⟨j + 1, h⟩ => .long ⟨j, by omega⟩
+
+def localTgt (u v : ℕ) : LocalEdge u v → GadgetPos u v
+  | .inl i => if h : i.val + 1 = u then .tgt else .short ⟨i.val, by omega⟩
+  | .inr j => if h : j.val + 1 = v then .tgt else .long ⟨j.val, by omega⟩
+
+/-! ## Layer 1: Types -/
+
+def FlowerEdge (u v : ℕ) : ℕ → Type
+  | 0     => Unit
+  | g + 1 => FlowerEdge u v g × LocalEdge u v
+
+instance instFintypeFlowerEdge (u v g : ℕ) : Fintype (FlowerEdge u v g) := by
+  induction g with
+  | zero => exact inferInstanceAs (Fintype Unit)
+  | succ g ih => exact inferInstanceAs (Fintype (_ × _))
+
+def FlowerVert (u v : ℕ) (g : ℕ) : Type :=
+  Fin 2 ⊕ Σ (k : Fin g), FlowerEdge u v k.val × (Fin (u - 1) ⊕ Fin (v - 1))
+
+instance instFintypeFlowerVert (u v g : ℕ) : Fintype (FlowerVert u v g) := by
+  unfold FlowerVert; infer_instance
+
+def FlowerVert.hub0 (u v g : ℕ) : FlowerVert u v g := .inl 0
+
+def FlowerVert.hub1 (u v g : ℕ) : FlowerVert u v g := .inl 1
+
+def FlowerVert.embed (u v g : ℕ) : FlowerVert u v g → FlowerVert u v (g + 1)
+  | .inl h => .inl h
+  | .inr ⟨k, e, pos⟩ => .inr ⟨k.castSucc, e, pos⟩
+
+/-! ## Layer 2: Edge endpoints -/
+
+def edgeEndpoints (u v : ℕ) :
+    (g : ℕ) → FlowerEdge u v g → FlowerVert u v g × FlowerVert u v g
+  | 0, () => (.hub0 u v 0, .hub1 u v 0)
+  | g + 1, (parent, localE) =>
+    let (pSrc, pTgt) := edgeEndpoints u v g parent
+    let resolve : GadgetPos u v → FlowerVert u v (g + 1) := fun
+      | .src     => FlowerVert.embed u v g pSrc
+      | .tgt     => FlowerVert.embed u v g pTgt
+      | .short i => .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl i⟩
+      | .long j  => .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr j⟩
+    (resolve (localSrc u v localE), resolve (localTgt u v localE))
+
+def edgeSrc (u v g : ℕ) (e : FlowerEdge u v g) : FlowerVert u v g :=
+  (edgeEndpoints u v g e).1
+
+def edgeTgt (u v g : ℕ) (e : FlowerEdge u v g) : FlowerVert u v g :=
+  (edgeEndpoints u v g e).2
+
+/-! ## Layer 3: Adjacency + SimpleGraph -/
+
+def flowerAdj' (u v g : ℕ) (a b : FlowerVert u v g) : Prop :=
+  ∃ e : FlowerEdge u v g,
+    (a = edgeSrc u v g e ∧ b = edgeTgt u v g e) ∨
+    (b = edgeSrc u v g e ∧ a = edgeTgt u v g e)
+
+/-! ## Target: gadget-local adjacency and walk lemmas -/
+
+/-- A local edge in a gadget creates an adjacency in flowerAdj'.
+For edge (parent, localE) at gen g+1, the resolved source and target
+of localE are adjacent. -/
+theorem resolve_localEdge_adj (u v g : ℕ) (parent : FlowerEdge u v g)
+    (localE : LocalEdge u v) :
+    flowerAdj' u v (g + 1)
+      (edgeSrc u v (g + 1) (parent, localE))
+      (edgeTgt u v (g + 1) (parent, localE)) := by
+  exact ⟨ ( parent, localE ), Or.inl ⟨ rfl, rfl ⟩ ⟩
+
+/-- Consecutive short-path positions are adjacent.
+Edge `.inl ⟨i, _⟩` connects position i to position i+1 on the short path.
+This means resolve(localSrc(.inl i)) and resolve(localTgt(.inl i))
+are adjacent in the flower graph. -/
+theorem short_path_consecutive_adj (u v g : ℕ) (parent : FlowerEdge u v g)
+    (i : Fin u) :
+    flowerAdj' u v (g + 1)
+      (edgeSrc u v (g + 1) (parent, .inl i))
+      (edgeTgt u v (g + 1) (parent, .inl i)) := by
+  exact?
+
+/-- Consecutive long-path positions are adjacent. -/
+theorem long_path_consecutive_adj (u v g : ℕ) (parent : FlowerEdge u v g)
+    (j : Fin v) :
+    flowerAdj' u v (g + 1)
+      (edgeSrc u v (g + 1) (parent, .inr j))
+      (edgeTgt u v (g + 1) (parent, .inr j)) := by
+  -- Apply the resolve_localEdge_adj theorem with the localE being .inr j.
+  apply resolve_localEdge_adj
+
+/-- The resolved source of a gadget is the embedded source of the parent edge. -/
+theorem resolve_src_eq_embed_edgeSrc (u v g : ℕ) (parent : FlowerEdge u v g)
+    (localE : LocalEdge u v) (hs : localSrc u v localE = .src) :
+    edgeSrc u v (g + 1) (parent, localE) =
+      FlowerVert.embed u v g (edgeSrc u v g parent) := by
+  -- By definition of edgeSrc, we have:
+  unfold edgeSrc;
+  -- By definition of edgeEndpoints, we have that the source of the edgeEndpoints of the parent edge is the same as the source of the parent edge.
+  simp [edgeEndpoints, hs]
+
+/-- The resolved target of a gadget is the embedded target of the parent edge. -/
+theorem resolve_tgt_eq_embed_edgeTgt (u v g : ℕ) (parent : FlowerEdge u v g)
+    (localE : LocalEdge u v) (ht : localTgt u v localE = .tgt) :
+    edgeTgt u v (g + 1) (parent, localE) =
+      FlowerVert.embed u v g (edgeTgt u v g parent) := by
+  unfold edgeTgt;
+  -- Since the local edge is a target, its resolved target is the same as the resolved target of the parent edge. Therefore, the equality holds.
+  simp [edgeEndpoints, ht]

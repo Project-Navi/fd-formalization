@@ -1,0 +1,113 @@
+/-
+This file was edited by Aristotle (https://aristotle.harmonic.fun).
+
+Lean version: leanprover/lean4:v4.24.0
+Mathlib version: f897ebcf72cd16f89ab4577d0c826cd14afaafc7
+This project request had uuid: c58f17aa-8888-418c-9ba9-e4ad4e8877e6
+
+To cite Aristotle, tag @Aristotle-Harmonic on GitHub PRs/issues, and add as co-author to commits:
+Co-authored-by: Aristotle (Harmonic) <aristotle-harmonic@harmonic.fun>
+
+The following was proved by Aristotle:
+
+- theorem log_flowerHubDist_eq (u v g : ℕ) :
+    log (↑(flowerHubDist u v g) : ℝ) = ↑g * log (↑u : ℝ)
+
+- theorem log_flowerEdgeCount_eq (u v g : ℕ) :
+    log (↑(flowerEdgeCount u v g) : ℝ) = ↑g * log (↑(u + v) : ℝ)
+
+- theorem log_flowerVertCount_residual_lower (u v g : ℕ) (hu : 1 < u)
+    (huv : u ≤ v) :
+    log ((↑(u + v) - 2 : ℝ) / (↑(u + v) - 1)) ≤
+    log ↑(flowerVertCount u v g) - ↑g * log (↑(u + v) : ℝ)
+
+- theorem log_flowerVertCount_residual_upper (u v g : ℕ) (hu : 1 < u)
+    (huv : u ≤ v) :
+    log (↑(flowerVertCount u v g) : ℝ) - ↑g * log (↑(u + v) : ℝ) ≤
+    log 2
+-/
+
+/-
+Copyright (c) 2026 Nelson Spence. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Nelson Spence
+-/
+import FdFormal.FlowerCounts
+import FdFormal.FlowerDiameter
+import Mathlib.Analysis.SpecialFunctions.Log.Basic
+
+
+set_option relaxedAutoImplicit false
+
+set_option autoImplicit false
+
+/-!
+# Flower Log Lemmas
+
+Reusable log identities and squeeze-sandwich bounds for the (u,v)-flower
+model. These extract calculations that were previously inlined in
+`FlowerDimension.lean` into standalone lemmas.
+
+## Main statements
+
+- `log_flowerHubDist_eq` — `log L_g = g * log u`
+- `log_flowerEdgeCount_eq` — `log E_g = g * log(u + v)`
+- `log_flowerVertCount_residual_lower` — residual lower bound for squeeze
+- `log_flowerVertCount_residual_upper` — residual upper bound for squeeze
+
+## Tags
+
+flower graph, logarithm, squeeze bounds
+-/
+
+open Real
+
+/-! ### Log identities -/
+
+/-- `log(L_g) = g * log(u)`: hub distance log scales linearly in `g`. -/
+theorem log_flowerHubDist_eq (u v g : ℕ) :
+    log (↑(flowerHubDist u v g) : ℝ) = ↑g * log (↑u : ℝ) := by
+  rw [ ← Real.log_pow, ← Nat.cast_pow ] ; congr ; exact?
+
+/-- `log(E_g) = g * log(u + v)`: edge count log scales linearly in `g`. -/
+theorem log_flowerEdgeCount_eq (u v g : ℕ) :
+    log (↑(flowerEdgeCount u v g) : ℝ) = ↑g * log (↑(u + v) : ℝ) := by
+  rw [ ← Real.log_pow, ← Nat.cast_pow, flowerEdgeCount_eq_pow ]
+
+/-! ### Squeeze-sandwich bounds
+
+The residual `log N_g - g * log(u + v)` is bounded between `log((w-2)/(w-1))`
+and `log 2`. Dividing by `g * log u` and squeezing to zero gives the
+log-ratio limit in `FlowerDimension`. -/
+
+/-- Lower bound on the squeeze residual:
+`log((w-2)/(w-1)) ≤ log N_g - g * log(u + v)`. -/
+theorem log_flowerVertCount_residual_lower (u v g : ℕ) (hu : 1 < u)
+    (huv : u ≤ v) :
+    log ((↑(u + v) - 2 : ℝ) / (↑(u + v) - 1)) ≤
+    log ↑(flowerVertCount u v g) - ↑g * log (↑(u + v) : ℝ) := by
+  -- By dividing both sides of the inequality from `flowerVertCount_lower` by $(u + v - 1)^g$ (which is positive since $u + v > 1$), we obtain the desired logarithmic inequality.
+  have h_div : ((u + v - 2) / (u + v - 1) : ℝ) ≤ (flowerVertCount u v g) / (u + v) ^ g := by
+    rw [ div_le_div_iff₀ ] <;> norm_cast;
+    · rw [ Int.subNatNat_of_le, Int.subNatNat_of_le ] <;> norm_cast <;> try linarith;
+      convert flowerVertCount_lower u v g hu huv using 1 ; ring!;
+    · rw [ Int.subNatNat_eq_coe ] ; norm_num ; linarith;
+    · positivity;
+  convert Real.log_le_log ?_ h_div using 1 <;> norm_num;
+  · rw [ Real.log_div ( by norm_cast; linarith [ show 0 < flowerVertCount u v g from by exact Nat.recOn g ( by norm_num ) fun g ih => by { rw [ flowerVertCount_succ ] ; positivity } ] ) ( by norm_cast; exact pow_ne_zero _ ( by norm_cast; linarith ) ), Real.log_pow ];
+  · exact div_pos ( by linarith [ show ( u : ℝ ) ≥ 2 by norm_cast, show ( v : ℝ ) ≥ u by norm_cast ] ) ( by linarith [ show ( u : ℝ ) ≥ 2 by norm_cast, show ( v : ℝ ) ≥ u by norm_cast ] )
+
+/-- Upper bound on the squeeze residual:
+`log N_g - g * log(u + v) ≤ log 2`. -/
+theorem log_flowerVertCount_residual_upper (u v g : ℕ) (hu : 1 < u)
+    (huv : u ≤ v) :
+    log (↑(flowerVertCount u v g) : ℝ) - ↑g * log (↑(u + v) : ℝ) ≤
+    log 2 := by
+  rw [ ← Real.log_pow ];
+  rw [ ← Real.log_div ( by norm_cast; exact ne_of_gt ( flowerVertCount_pos u v g ) ) ( by norm_cast; exact ne_of_gt ( pow_pos ( by linarith ) _ ) ) ];
+  gcongr;
+  · exact div_pos ( Nat.cast_pos.mpr ( flowerVertCount_pos u v g ) ) ( pow_pos ( Nat.cast_pos.mpr ( by linarith ) ) _ );
+  · rw [ div_le_iff₀ ] <;> norm_cast;
+    · have := flowerVertCount_upper u v g hu huv;
+      nlinarith [ Nat.sub_pos_of_lt ( by linarith : 1 < u + v ) ];
+    · positivity
