@@ -17,8 +17,7 @@ set_option autoImplicit false
 # (u,v)-Flower Graph Construction
 
 Structured-gadget approach for the F2 bridge theorem: the (u,v)-flower
-graph on `Fin` has hub distance `u^g`. All definitions and theorems are
-fully proved with zero sorry.
+graph on `Fin` has hub distance `u^g`.
 
 ## Main definitions
 

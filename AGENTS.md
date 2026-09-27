@@ -25,7 +25,10 @@ lake env lean -DwarningAsError=true <Pkg>/Verify.lean   # axiom dashboard
 
 - `Verify.lean` holds one `#print axioms` per public result. Add a line whenever you add
   a public theorem. CI counts the records and checks each against the allowlist.
-- Audit for placeholders: `rg -n '\bsorry\b|sorryAx' <Pkg>` must return nothing.
+- Audit for placeholders: `rg -n '\bsorry\b|sorryAx' <Pkg>` must return nothing, even in
+  comments; CI runs the same check.
+- If a repo has a docs site, `uv run zensical build` must succeed; CI also checks the
+  built site's local links.
 - If a repo has a `Makefile`, use its targets (`build`, `verify`, `audit`, `lint`) as
   the canonical commands.
 
@@ -236,5 +239,5 @@ Aristotle grinds leaf lemmas and detects dependencies. It is not the theorem arc
   - Replace `exact?` with the actual term or tactic.
   - Reject any `axiom` it introduces, since axioms can shadow real definitions.
 - Before trusting output, check Aristotle's Lean version against `lean-toolchain`.
-- Artifacts live outside the build tree (e.g. `docs/aristotle/`), where they aren't
-  built or linted.
+- Keep raw prover artifacts and run logs out of the public repository. Commit only the
+  rewritten proofs, and credit Aristotle in the README.

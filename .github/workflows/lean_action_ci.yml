@@ -2,6 +2,7 @@ name: Lean CI
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -37,6 +38,13 @@ jobs:
         with:
           path: .lake/packages
           key: lake-packages-${{ hashFiles('lean-toolchain', 'lakefile.toml', 'lake-manifest.json') }}
+
+      - name: Audit placeholders
+        run: |
+          if git grep -n -w -e sorry -e sorryAx -- 'FdFormal/*.lean'; then
+            echo "::error::'sorry' or 'sorryAx' appears in FdFormal"
+            exit 1
+          fi
 
       - name: Get Mathlib cache
         run: lake exe cache get || true

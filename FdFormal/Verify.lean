@@ -21,8 +21,7 @@ set_option autoImplicit false
 Displays the axiom dependencies of all verified declarations.
 Run `lake env lean FdFormal/Verify.lean` to see the output.
 
-All declarations should depend only on `[propext, Classical.choice, Quot.sound]`
-with no `sorryAx`.
+All declarations should depend only on `[propext, Classical.choice, Quot.sound]`.
 
 ## Tags
 
