@@ -6,9 +6,7 @@ hide:
 
 # fd-formalization
 
-**Lean 4 + Mathlib formalization of \((u,v)\)-flower fractal dimension.**
-
-Hub distance \(= u^g\) and log-ratio convergence to \(\frac{\log(u+v)}{\log u}\). Zero sorry, zero custom axioms.
+**Lean 4 + Mathlib formalization of the \((u,v)\)-flower log-ratio limit and hub distance.**
 
 [Get Started](getting-started/quickstart.md){ .md-button .md-button--primary }
 [Theorems](reference/theorems.md){ .md-button }
@@ -17,25 +15,24 @@ Hub distance \(= u^g\) and log-ratio convergence to \(\frac{\log(u+v)}{\log u}\)
 
 ## What it proves
 
-For the arithmetic \((u,v)\)-flower model with \(1 < u \leq v\), this formalization proves:
+For \(1 < u \leq v\):
 
 | Theorem | Statement | File |
 |---|---|---|
-| **F1** --- Log-ratio convergence | \(\displaystyle\lim_{g \to \infty} \frac{\log \lvert V_g \rvert}{\log L_g} = \frac{\log(u+v)}{\log u}\) | `FlowerDimension.lean` |
-| **F2** --- Hub distance bridge | \(\operatorname{dist}_G(\text{hub}_0, \text{hub}_1) = u^g\) | `FlowerConstruction.lean` |
+| **F1** --- log-ratio limit | \(\displaystyle\lim_{g \to \infty} \frac{\log N_g}{\log L_g} = \frac{\log(u+v)}{\log u}\), for the vertex count \(N_g\) and hub distance \(L_g\) defined by recurrences | `FlowerDimension.lean` |
+| **F2** --- hub distance | the explicit flower graph on \(\mathrm{Fin}\,N_g\) has distance \(L_g = u^g\) between its hubs, the indices 0 and 1 | `FlowerConstruction.lean` |
+| **F3** --- graph dimension | so the flower graphs themselves have log-ratio dimension \(\log(u+v)/\log u\) | `FlowerGraphDimension.lean` |
 
-In the physics literature (Rozenfeld et al. 2007), this log-ratio equals the box-counting fractal dimension \(d_B\). This is the ground truth formula that [navi-fractal](https://github.com/Project-Navi/navi-fractal) calibrates its sandbox dimension estimates against.
+Rozenfeld et al. (2007) identify this limit with the box-counting dimension \(d_B\); that identification is not formalized. [navi-fractal](https://github.com/Project-Navi/navi-fractal) uses the formula as calibration ground truth.
 
-**Axiom boundary:** All results proved from Mathlib primitives --- `propext`, `Classical.choice`, `Quot.sound` only.
-
----
+The library builds with no `sorry`, and the 33 declarations checked in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ## Documentation
 
-| Section | What you'll find |
+| Section | Contents |
 |---|---|
-| [Quickstart](getting-started/quickstart.md) | Build and verify the proofs |
-| [Proof Strategy](explanation/proof-strategy.md) | Route B squeeze, mathematical background |
-| [Graph Construction](explanation/graph-construction.md) | F2 bridge, structured gadgets, distance proof |
-| [Theorems](reference/theorems.md) | Complete theorem catalog by file |
-| [Roadmap](reference/roadmap.md) | Future theorem targets and sequencing |
+| [Quickstart](getting-started/quickstart.md) | Build and verify |
+| [Proof Strategy](explanation/proof-strategy.md) | Squeeze argument for F1 |
+| [Graph Construction](explanation/graph-construction.md) | F2 and F3: gadgets, the distance proof |
+| [Theorems](reference/theorems.md) | Catalog by file |
+| [Roadmap](reference/roadmap.md) | Next targets |

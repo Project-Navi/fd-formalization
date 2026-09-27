@@ -2,6 +2,7 @@ name: Lean CI
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -31,29 +32,43 @@ jobs:
           elan --version
           elan show
 
-      - name: Cache Lake build artifacts
+      # Dependencies only, keyed on the pinned state; project modules are always rebuilt.
+      - name: Cache Lake packages
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
-          path: .lake
-          key: lake-${{ hashFiles('lean-toolchain', 'lakefile.toml', 'lake-manifest.json') }}
-          restore-keys: lake-
+          path: .lake/packages
+          key: lake-packages-${{ hashFiles('lean-toolchain', 'lakefile.toml', 'lake-manifest.json') }}
+
+      - name: Audit placeholders
+        run: |
+          if git grep -n -w -e sorry -e sorryAx -- 'FdFormal/*.lean'; then
+            echo "::error::'sorry' or 'sorryAx' appears in FdFormal"
+            exit 1
+          fi
 
       - name: Get Mathlib cache
         run: lake exe cache get || true
 
-      - name: Build (fail on sorry)
-        run: lake build --wfail
+      # Every tracked module, including any not imported by FdFormal.lean.
+      - name: Build (fail on warnings, including sorry)
+        run: lake build --wfail FdFormal $(git ls-files 'FdFormal/*.lean' | sed -e 's/\.lean$//' -e 's#/#.#g' -e 's/^/+/')
 
       - name: Lint (Mathlib environment linters)
         run: lake lint
 
-      - name: Check for sorry contamination
+      - name: Check axioms
+        shell: bash
         run: |
-          echo "Checking axiom dependencies..."
-          touch FdFormal/Verify.lean
-          lake env lean FdFormal/Verify.lean 2>&1 | tee verify_output.txt
-          if grep -q "sorryAx" verify_output.txt; then
-            echo "FATAL: sorryAx found in verified theorems!"
+          set -o pipefail
+          lake env lean -DwarningAsError=true FdFormal/Verify.lean 2>&1 | tee "$RUNNER_TEMP/axioms.txt"
+          expected=$(awk '/^#print axioms /{ n++ } END { print n + 0 }' FdFormal/Verify.lean)
+          # Rejoin wrapped axiom lists, then check every record against the allowlist.
+          sed -e ':a' -e 'N' -e '$!ba' -e 's/\n / /g' "$RUNNER_TEMP/axioms.txt" > "$RUNNER_TEMP/records.txt"
+          found=$(awk '/ (depends on axioms: \[.*\]|does not depend on any axioms)$/{ n++ } END { print n + 0 }' "$RUNNER_TEMP/records.txt")
+          unexpected=$(sed -n 's/.* depends on axioms: \[\(.*\)\]$/\1/p' "$RUNNER_TEMP/records.txt" | tr ',' '\n' | tr -d ' ' \
+            | awk '!/^(propext|Classical\.choice|Quot\.sound)$/' | sort -u | tr '\n' ' ')
+          if [ "$expected" -eq 0 ] || [ "$found" -ne "$expected" ] || [ -n "$unexpected" ]; then
+            echo "::error::axiom check failed: $found of $expected records; unexpected axioms: ${unexpected:-none}"
             exit 1
           fi
-          echo "No sorry contamination detected."
+          echo "$found of $expected declarations use only propext, Classical.choice and Quot.sound."

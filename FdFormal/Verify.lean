@@ -9,6 +9,8 @@ import FdFormal.FlowerLog
 import FdFormal.FlowerLogRatio
 import FdFormal.FlowerDimension
 import FdFormal.FlowerConstruction
+import FdFormal.FlowerGraphDimension
+import FdFormal.PathGraphDist
 
 set_option relaxedAutoImplicit false
 set_option autoImplicit false
@@ -19,8 +21,7 @@ set_option autoImplicit false
 Displays the axiom dependencies of all verified declarations.
 Run `lake env lean FdFormal/Verify.lean` to see the output.
 
-All declarations should depend only on `[propext, Classical.choice, Quot.sound]`
-with no `sorryAx`.
+All declarations should depend only on `[propext, Classical.choice, Quot.sound]`.
 
 ## Tags
 
@@ -71,3 +72,15 @@ verification, axioms, soundness
 
 -- Log-ratio convergence (FlowerDimension)
 #print axioms flowerDimension
+
+-- Hubs on `Fin` (FlowerConstruction)
+#print axioms flowerVertEquiv_hub0
+#print axioms flowerVertEquiv_hub1
+#print axioms flowerGraph_dist_hub0_hub1
+
+-- Log-ratio dimension of the flower graphs (FlowerGraphDimension)
+#print axioms flowerGraph_hasLogRatioDimension
+
+-- Path graph distances (PathGraphDist)
+#print axioms SimpleGraph.pathGraph_edist
+#print axioms SimpleGraph.pathGraph_dist

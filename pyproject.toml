@@ -1,7 +1,7 @@
 [project]
 name = "fd-formalization"
 version = "0.1.0"
-description = "Lean 4 formalization of (u,v)-flower fractal dimension"
+description = "Lean 4 proofs of the (u,v)-flower hub distance and log-ratio limit"
 requires-python = ">=3.12"
 
 [dependency-groups]
