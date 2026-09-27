@@ -7,20 +7,24 @@ on:
       - "docs/**"
       - "zensical.toml"
       - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - "zensical.toml"
+      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+permissions: {}
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: docs-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098 # v7.3.1
@@ -31,15 +35,39 @@ jobs:
         run: uv sync --frozen --no-install-project --group docs
       - name: Build site
         run: uv run zensical build
-      - name: Strip internal docs from build
-        run: rm -rf site/internal site/aristotle site/plans
-      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+      - name: Check site
+        shell: python
+        run: |
+          import pathlib, re, sys, urllib.parse
+          site = pathlib.Path("site")
+          bad = [str(p) for p in site.rglob("*") if re.search(r"aristotle|internal|plans|\.lean\.txt$", str(p))]
+          pages = list(site.rglob("*.html"))
+          for page in pages:
+              for ref in re.findall(r'(?:href|src)="([^"]+)"', page.read_text(encoding="utf-8")):
+                  path = urllib.parse.unquote(ref.split("#")[0].split("?")[0])
+                  if re.match(r"[a-z]+:|//", ref) or not path:
+                      continue
+                  if path.startswith("/"):
+                      target = site / path.removeprefix("/fd-formalization").lstrip("/")
+                  else:
+                      target = page.parent / path
+                  if not (target / "index.html" if target.is_dir() else target).exists():
+                      bad.append(f"{page.relative_to(site)}: {ref}")
+          if bad:
+              sys.exit("site check failed:\n  " + "\n  ".join(bad))
+          print(f"{len(pages)} pages, all local links resolve")
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
           path: site
 
   deploy:
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

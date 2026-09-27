@@ -16,7 +16,7 @@ lake build --wfail
 lake env lean -DwarningAsError=true FdFormal/Verify.lean
 ```
 
-`FdFormal/Verify.lean` prints the axioms of 33 declarations, including all three results; CI requires each to use only `propext`, `Classical.choice` and `Quot.sound`. `docs/aristotle/` holds unbuilt prover files; the inputs contain `sorry`.
+`FdFormal/Verify.lean` prints the axioms of 33 declarations, including all three results; CI requires each to use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ## Credit and license
 

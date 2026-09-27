@@ -14,11 +14,11 @@ Rozenfeld, Havlin & ben-Avraham (2007) identify this limit with the box-counting
 
 1. **Exact counts.** \(E_g = w^g\), \(L_g = u^g\), and \((w - 1)\,N_g = (w - 2)\,w^g + w\): each replaced edge adds \(w - 2\) internal vertices.
 2. **Bounds.** \(\frac{w-2}{w-1}\,w^g \leq N_g \leq 2\,w^g\).
-3. **Decomposition.** Since \(\log L_g = g \log u\),
+3. **Decomposition.** For \(g \geq 1\), \(\log L_g = g \log u > 0\), so
    \[
    \frac{\log N_g}{\log L_g} = \underbrace{\frac{\log N_g - g \log w}{g \log u}}_{\text{residual}} + \frac{\log w}{\log u}.
    \]
-4. **Squeeze.** The residual lies between \(\log\frac{w-2}{w-1} / (g \log u)\) and \(\log 2 / (g \log u)\), so it tends to 0 (`Filter.Tendsto.squeeze'`).
+4. **Squeeze.** The residual lies between \(\log\frac{w-2}{w-1} / (g \log u)\) and \(\log 2 / (g \log u)\), so it tends to 0 (`Filter.Tendsto.squeeze'`, applied eventually in \(g\)).
 
 This avoids taking the log of the exact sum \((w-2)\,w^g + w\).
 
