@@ -1,6 +1,7 @@
 # AGENTS.md — Lean 4 + Mathlib conventions
 
-Shared conventions for Lean 4 formalization repos. Toolchain and Mathlib are pinned to
+Shared conventions for Lean 4 formalization repos. Task-specific proof obligations take
+precedence over these generic conventions. Toolchain and Mathlib are pinned to
 the same release across repos (currently `v4.28.0`), so lemmas can be ported between them
 without a bump. API notes below were checked against that pin; re-check them after a bump.
 
@@ -8,11 +9,17 @@ without a bump. API notes below were checked against that pin; re-check them aft
 
 - **No `sorry` on the default branch.** Every declaration is fully proved before merge.
 - **No `axiom` declarations.** Classical results that are not proved are assumed through a
-  typeclass or structure field (see *Assumed results*), never through `axiom`.
+  typeclass or structure field (see *Assumed results*, which needs approval), never
+  through `axiom`.
 - **Axiom allowlist**: every public result depends only on `propext`, `Classical.choice`
   and `Quot.sound`. Anything else, including `sorryAx`, is a failure.
 - **Every module compiles.** `lake build` builds only what the root imports, so a file
   nobody imports is never checked and can rot silently. CI builds every tracked module.
+- **Assumption changes require approval.** Never complete an assigned proof by adding an
+  unproved hypothesis, infrastructure field, or equivalent assumption unless the task
+  explicitly authorizes a conditional result. A clean axiom report does not discharge
+  theorem hypotheses. Report the complete theorem signature and any remaining assumed
+  mathematical results.
 
 ## Build & verify
 
@@ -23,8 +30,13 @@ lake lint                                            # Mathlib environment linte
 lake env lean -DwarningAsError=true <Pkg>/Verify.lean   # axiom dashboard
 ```
 
-- `Verify.lean` holds one `#print axioms` per public result. Add a line whenever you add
-  a public theorem. CI counts the records and checks each against the allowlist.
+- `Verify.lean` holds one `#print axioms` per selected declaration: every headline result
+  and the supporting declarations the docs cite, not every public theorem. Add a line when
+  you add one of those. CI checks each record present against the allowlist; it does not
+  check that the selection is complete.
+- If the sandbox cannot install Lean or fetch the Mathlib cache, push to a draft PR and
+  let CI build and verify. Report which checks ran where; never claim a local build that
+  did not happen.
 - Audit for placeholders: `rg -n '\bsorry\b|sorryAx' <Pkg>` must return nothing, even in
   comments; CI runs the same check.
 - If a repo has a docs site, `uv run zensical build` must succeed; CI also checks the
@@ -57,7 +69,8 @@ lake env lean -DwarningAsError=true <Pkg>/Verify.lean   # axiom dashboard
 
 Every `.lean` file, in order:
 
-1. Copyright header:
+1. Copyright header, matching the repository's `LICENSE` and actual contributors (the
+   example below is this repo's; list every author of the file and keep existing credit):
    ```lean
    /-
    Copyright (c) 2026 Nelson Spence. All rights reserved.
@@ -196,8 +209,9 @@ Every `.lean` file, in order:
 
 ## Assumed results
 
-When a classical result is too large to prove in the repo, assume it explicitly and
-keep the boundary visible:
+Only when the task explicitly authorizes a conditional result (see *Invariants*). When a
+classical result is too large to prove in the repo, assume it explicitly and keep the
+boundary visible:
 
 - Bundle the assumptions as fields of a typeclass or structure (an `…Infra` class),
   one field per classical result, each with a docstring naming its source.
