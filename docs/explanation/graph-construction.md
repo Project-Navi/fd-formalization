@@ -1,6 +1,6 @@
 # Graph Construction
 
-F2 builds the \((u,v)\)-flower as an explicit `SimpleGraph` and proves that its hub distance is \(u^g\) (`FlowerConstruction.lean`); F3 turns this into the log-ratio dimension of the graphs (`FlowerGraphDimension.lean`).
+F2 builds the \((u,v)\)-flower as an explicit `SimpleGraph` and proves that its hub distance is \(u^g\) (`FlowerConstruction.lean`); F3 turns this into the log-ratio dimension of the graphs (`FlowerGraphDimension.lean`). F4 reuses the same construction: its cells are the copies of an earlier generation's flower that each edge grows into (`FlowerCells.lean`); see [Proof Strategy](proof-strategy.md#f4-box-counting).
 
 ---
 

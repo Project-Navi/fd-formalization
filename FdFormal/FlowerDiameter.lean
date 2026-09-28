@@ -15,8 +15,8 @@ between hubs follows the short side (`u` sub-edges), each of which is
 itself a copy of the previous generation.
 
 This file does not reference `SimpleGraph.dist` or `SimpleGraph.edist`.
-The connection between `flowerHubDist` and a concrete graph metric is
-a deferred bridge theorem (see `FlowerGraph.lean`).
+`flowerGraph_dist_hub0_hub1` in `FlowerConstruction.lean` proves that the
+explicit graph's hub distance is `flowerHubDist`.
 
 ## Main definitions
 
