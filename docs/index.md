@@ -6,7 +6,7 @@ hide:
 
 # fd-formalization
 
-**Lean 4 + Mathlib formalization of the \((u,v)\)-flower log-ratio limit, hub distance and box-counting dimension.**
+**A complete Lean 4 + Mathlib proof that the \((u,v)\)-flowers have fractal dimension \(\log(u+v)/\log u\), up to box-counting dimension.**
 
 [Get Started](getting-started/quickstart.md){ .md-button .md-button--primary }
 [Theorems](reference/theorems.md){ .md-button }
