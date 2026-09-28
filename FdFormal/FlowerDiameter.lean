@@ -5,9 +5,6 @@ Authors: Nelson Spence
 -/
 import FdFormal.FlowerCounts
 
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-
 /-!
 # Flower Graph Hub-Distance Scaling
 
@@ -18,8 +15,8 @@ between hubs follows the short side (`u` sub-edges), each of which is
 itself a copy of the previous generation.
 
 This file does not reference `SimpleGraph.dist` or `SimpleGraph.edist`.
-The connection between `flowerHubDist` and a concrete graph metric is
-a deferred bridge theorem (see `FlowerGraph.lean`).
+`flowerGraph_dist_hub0_hub1` in `FlowerConstruction.lean` proves that the
+explicit graph's hub distance is `flowerHubDist`.
 
 ## Main definitions
 
@@ -33,6 +30,11 @@ a deferred bridge theorem (see `FlowerGraph.lean`).
 - `flowerHubDist_strict_mono` — `L_g < L_{g+1}`
 - `flowerHubDist_cast_eq_pow` — `↑(L_g) = (↑u)^g` in `ℝ`
 - `flowerHubDistReal_pos` — positivity in `ℝ`
+
+## Implementation notes
+
+`flowerHubDist` is the recurrence `L_{g+1} = u * L_g`, so every statement here is arithmetic.
+The graph-theoretic counterpart is `flowerGraph'_dist_hubs` in `FlowerConstruction`.
 
 ## References
 

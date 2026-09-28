@@ -5,10 +5,7 @@ Authors: Nelson Spence
 -/
 import Mathlib.Tactic.Zify
 import Mathlib.Tactic.Linarith
-import Mathlib.Data.Real.Basic
-
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
+import Mathlib.Basic.Real.Basic
 
 /-!
 # Flower Graph Exact Counts
@@ -44,6 +41,12 @@ depend on the graph representation.
 - `flowerVertCount_upper` — `(w - 1) * N_g ≤ 2 * (w - 1) * w^g`
 - `flowerVertCount_strict_mono` — `N_g < N_{g+1}`
 - `flowerVertCount_cast_eq` — recurrence in `ℝ`
+
+## Implementation notes
+
+The counts are recurrences on `ℕ`, not cardinalities of a graph. `FlowerConstruction` proves
+that the explicit graph has `flowerVertCount` vertices (`flowerVert_card`). The real-valued
+bounds used by the squeeze go through `flowerVertCount_cast_eq`.
 
 ## References
 

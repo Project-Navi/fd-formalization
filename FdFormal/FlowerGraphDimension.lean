@@ -7,9 +7,6 @@ import FdFormal.FlowerConstruction
 import FdFormal.FlowerDimension
 import FdFormal.FlowerLogRatio
 
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-
 /-!
 # Log-Ratio Dimension of the Flower Graphs
 
@@ -18,8 +15,13 @@ The explicit (u,v)-flower graphs `flowerGraph u v g` have log-ratio dimension
 arithmetic limit `flowerDimension` with the hub distance `flowerGraph_dist_hub0_hub1` and
 `Fintype.card (Fin n) = n`.
 
-The limit is the box-counting dimension of the flowers in the physics literature; that
-identification is not formalized.
+The limit is the box-counting dimension of the flowers in the physics literature;
+`flowerGraph_hasBoxDimension` in `FlowerBoxDimension.lean` proves that identification.
+
+## Main definitions
+
+None: the graphs and `HasLogRatioDimension` are defined in `FlowerConstruction` and
+`FlowerLogRatio`.
 
 ## Main statements
 

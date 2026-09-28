@@ -5,22 +5,17 @@ Authors: Nelson Spence
 -/
 import FdFormal.FlowerCounts
 
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-
 /-!
 # (u,v)-Flower Graph — Structural Definitions
 
 Hub vertices and vertex-type helpers for the (u,v)-flower network
 family from Rozenfeld, Havlin & ben-Avraham (NJP 2007).
 
-The full `SimpleGraph` realization is deferred — the log-ratio
-convergence theorem (in `FlowerDimension`) requires only the counting
-formulas (`FlowerCounts`) and the hub-distance scaling function
-(`FlowerDiameter`), not a concrete graph construction.
-
-A future bridge theorem can connect `flowerHubDist` to
-`SimpleGraph.edist` on an explicit graph model.
+The log-ratio convergence theorem (in `FlowerDimension`) needs only the
+counting formulas (`FlowerCounts`) and the hub-distance recurrence
+(`FlowerDiameter`). The explicit `SimpleGraph` is built in
+`FlowerConstruction`, whose `flowerGraph_dist_hub0_hub1` connects
+`flowerHubDist` to `SimpleGraph.dist`; its hubs are the indices defined here.
 
 ## Main definitions
 
@@ -30,6 +25,12 @@ A future bridge theorem can connect `flowerHubDist` to
 
 - `two_le_flowerVertCount` — vertex count is at least 2
 - `hub0_ne_hub1` — the two hubs are distinct
+
+## Implementation notes
+
+The hubs are the indices `0` and `1` of `Fin (flowerVertCount u v g)`, which exist because
+`2 ≤ flowerVertCount u v g`. `flowerVertEquiv` in `FlowerConstruction` sends the
+construction's hubs to exactly these indices.
 
 ## References
 

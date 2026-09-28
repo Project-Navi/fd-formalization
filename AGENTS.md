@@ -1,9 +1,10 @@
 # AGENTS.md — Lean 4 + Mathlib conventions
 
 Shared conventions for Lean 4 formalization repos. Task-specific proof obligations take
-precedence over these generic conventions. Toolchain and Mathlib are pinned to
-the same release across repos (currently `v4.28.0`), so lemmas can be ported between them
-without a bump. API notes below were checked against that pin; re-check them after a bump.
+precedence over these generic conventions. Keep the Lean formalization repos on one Lean
+and Mathlib release where possible, so lemmas can be ported between them without a bump;
+this repo pins `v4.34.1`. API notes below were checked against that pin; re-check them after
+a bump.
 
 ## Invariants
 
@@ -20,6 +21,10 @@ without a bump. API notes below were checked against that pin; re-check them aft
   explicitly authorizes a conditional result. A clean axiom report does not discharge
   theorem hypotheses. Report the complete theorem signature and any remaining assumed
   mathematical results.
+- **No vacuous assumptions.** Never encode an open problem or a missing proof as `True`,
+  an unconstrained `Nonempty` witness, or an arbitrary `Type` the model gets to choose.
+  An assumption is a concrete proposition about the actual mathematical objects, or it is
+  not there.
 
 ## Build & verify
 
@@ -39,8 +44,20 @@ lake env lean -DwarningAsError=true <Pkg>/Verify.lean   # axiom dashboard
   did not happen.
 - Audit for placeholders: `rg -n '\bsorry\b|sorryAx' <Pkg>` must return nothing, even in
   comments; CI runs the same check.
+- Independent kernel replay: `lake env leanchecker --fresh <Pkg>` re-checks every
+  declaration in a fresh kernel, outside the elaborator that produced it.
+- Test the checkers themselves. An axiom or `sorry` gate that silently passes is worse than
+  none (a pipe without `pipefail` once hid Lean failures here). When you add or change a
+  gate, also add a small negative fixture that must fail it and a snapshot of expected
+  axiom output that its parser must accept. This repo's CI has neither yet: after changing
+  the axiom check, test it by hand against a file that uses `sorry`.
+- Change `lake-manifest.json` only in an intentional dependency bump. No CI guard enforces
+  this here; check the diff yourself.
 - If a repo has a docs site, `uv run zensical build` must succeed; CI also checks the
   built site's local links.
+- This repo's CI runs: the placeholder audit, `lake build --wfail` of every module,
+  `lake lint`, the axiom check, and the docs build and link check. Everything else in
+  this file is a convention to follow, not an automated gate.
 - If a repo has a `Makefile`, use its targets (`build`, `verify`, `audit`, `lint`) as
   the canonical commands.
 
@@ -62,8 +79,11 @@ lake env lean -DwarningAsError=true <Pkg>/Verify.lean   # axiom dashboard
   ```
   Existing per-file `set_option autoImplicit false` lines are redundant. Don't add new ones.
 - `lintDriver = "batteries/runLinter"`.
-- Mathlib is required at a release tag (`rev = "v4.28.0"`), with no local fork and no
+- Mathlib is required at a release tag (`rev = "v4.34.1"`), with no local fork and no
   `require` overrides. Bump only when a needed API landed or changed.
+- A Lake dependency on another formalization repo pins a commit, not a branch. Bump it
+  deliberately, after that commit builds cleanly and its axiom report is clean, and keep
+  both repos on the same Lean and Mathlib pin.
 
 ## File layout
 
@@ -84,6 +104,17 @@ Every `.lean` file, in order:
 
 - Keep files under ~1000 lines and split along natural boundaries.
 - Respect the import hierarchy: Algebra → Order → Topology → Analysis.
+- Mathlib's module system: a repo that has adopted it starts every file with `module`,
+  uses `public import`, and wraps exposed definitions in `@[expose] public section`.
+  Adoption is repo-wide and happens in one change; don't mix header styles in one repo.
+- Keep general-purpose results apart from project-specific ones. General lemmas live in
+  their own directory under Mathlib-style namespaces, depend only on Mathlib and each
+  other, and never import the project-specific layer. Once a repo has both layers, add a
+  CI check on the import direction. This repo keeps one flat `FdFormal/` directory;
+  general-purpose declarations still go in Mathlib-style namespaces.
+- Unfinished or exploratory work lives in an `Experimental/` directory. Only
+  `Experimental/` and `Verify/` may import it; add a CI check for that when the directory
+  first appears. This repo has none.
 - Every `def` has a `/-- ... -/` docstring (the `docBlame` linter checks this).
 - Cite references as `[AuthorYear]`.
 
@@ -96,6 +127,7 @@ Every `.lean` file, in order:
   `NeZero_iff`.
 - Conclusion first, hypotheses joined by `_of_` in order: `C_of_A_of_B` for `A → B → C`.
 - American English (`factorization`).
+- No Greek letters in declaration names; spell them out (`sigma`, not `σ`).
 - Name instances explicitly: `instance instFintypeFoo : Fintype Foo`.
 - Never shadow prelude names with variables (`le`, `lt`, `eq`, `ne`).
 - Fix one set of standard parameter names per repo and declare them in `variable` blocks.
@@ -130,6 +162,8 @@ Every `.lean` file, in order:
 - `@[simp]` on equations or iffs whose LHS is more complex than the RHS. It must not loop.
 - `@[ext]` on extensionality lemmas; `@[simps]` for structure projections.
 - `@[gcongr]` on congruence lemmas of the form `f x₁ ∼ f x₂` given `x₁ ∼ x₂`.
+- Every new `@[simp]`, `@[ext]` or `@[aesop]` attribute gets a one-line comment saying why.
+  No project-local `@[aesop]` rules in general-purpose files.
 
 ## Tactics
 
@@ -147,6 +181,8 @@ Every `.lean` file, in order:
 
 - A terminal `simp` stays unsqueezed, since squeezed lists break on lemma renames.
 - A non-terminal `simp` must be `simp only [...]`.
+- `aesop` only with explicit local rule sets, or replaced by the script `aesop?` produces.
+  Flag any non-terminal `ring_nf`; its normal form changes between Mathlib versions.
 - For set equality, `ext v; simp [...]` is canonical. Skip `ext` when `simp` alone closes
   it. Don't hand-build `constructor`/`rcases`/`absurd` chains.
 - `simp` with commutativity lemmas (`adj_comm`, `or_comm`) often closes goals that look
@@ -157,7 +193,7 @@ Every `.lean` file, in order:
   `rw [defn, lemma₁, lemma₂]` chain is often more robust.
 - `exact?`, `apply?` and `simp?` are for exploration only. Never commit them.
 
-## API notes (Mathlib v4.28.0)
+## API notes (Mathlib v4.34.1)
 
 **Casts**
 - After `Nat.cast_sub`, normalize with `simp only [Nat.cast_ofNat, Nat.cast_one]` before
@@ -169,7 +205,10 @@ Every `.lean` file, in order:
 **ℕ and `Fin`**
 - `ring` does not close `a * a ^ n = a ^ (n + 1)` on ℕ. Use `rw [pow_succ, mul_comm]`.
 - `omega` does not see `Fin` value facts. State them first, e.g.
-  `have : (j.succ : ℕ) = j + 1 := Fin.val_succ j`.
+  `have : (j.succ : ℕ) = j + 1 := Fin.val_succ j`. The same goes for `(⟨m, h⟩ : Fin n).val`
+  inside a lemma's statement: restate the lemma with `m` so the value reduces.
+- Division by a variable is an opaque atom for `omega`, and two spellings of one quotient
+  are two atoms. `generalize` the quotient in the goal and its facts before `omega`.
 - `i ≤ 0` on `Fin` to `i = 0`: `Fin.le_zero_iff.mp`, not `ext; omega`.
 - `Function.iterate_succ_apply'` unfolds `f^[n+1] x = f (f^[n] x)` from the right.
 
@@ -193,18 +232,50 @@ Every `.lean` file, in order:
 - Standard pattern: `filter_upwards [eventually_gt_atTop 0] with g hg`.
 
 **Graphs, order, dynamics**
-- `SimpleGraph.mk` needs the `Std.Symmetric` / `Std.Irrefl` wrappers, not a raw `∀`.
+- `SimpleGraph.mk` takes `Std.Symm` and `Std.Irrefl` structures: wrap each proof in `⟨...⟩`.
+- Mathlib's `SimpleGraph.ball c r` is `{v | G.edist v c < r}` (varying point first); the
+  centre lemma is `mem_ball_self`.
 - `pathGraph` exists, but Mathlib has no distance lemmas for it.
 - `OrderHom.nextFixed` (Knaster–Tarski) needs `CompleteLattice α`.
 - Periodic points live in `Dynamics.PeriodicPts.Defs` (`Function.minimalPeriod`,
   `Function.IsPeriodicPt`), not `GroupTheory.OrderOfElement`.
+
+**Probability and information theory**
+- `PMF` coerces through `FunLike`; there is no `PMF.apply` lemma, so write `p a`.
+  `PMF.tsum_coe : ∑' a, p a = 1`. `PMF.uniformOfFinset` is in
+  `Mathlib.Probability.Distributions.Uniform`.
+- `ENNReal.toReal_rpow x z : x.toReal ^ z = (x ^ z).toReal` holds with no side
+  conditions; use `.symm` to push `toReal` outward.
+- `μ ≪ ν` is scoped notation: `open MeasureTheory` wherever it appears.
+- `InformationTheory.klDiv` is an `irreducible_def`: work through its API
+  (`klDiv_of_ac_of_integrable`, `klDiv_eq_zero_iff`, `toReal_klDiv`,
+  `klDiv_eq_integral_klFun`), never by unfolding.
+- Logarithms are `Real.log` (natural log) only. Convert bases at the statement level.
+
+**Lean and Mathlib v4.34 changes** (found moving from v4.28.0)
+- `dif_pos` / `dif_neg` are deprecated; `dite_eq_left` / `dite_eq_right` have the same
+  statements.
+- `Mathlib.Data.Real.Basic` moved to `Mathlib.Basic.Real.Basic`; `ENat.toNat_coe` is
+  `ENat.toNat_natCast`.
+- The header linter checks every file: the module docstring must follow the imports
+  directly, so per-file `set_option` lines above it fail the build.
+- `simp` does not unfold a type defined with `def` (for example a `def` that is a `Sum`). An
+  equality it leaves between terms that differ only in proofs needs a final `rfl`, and
+  `Sum.inl ≠ Sum.inr` at such a type needs `Sum.inl_ne_inr`.
+- A term like `embed hub0` that equals `hub0` only after unfolding a definition breaks
+  `rw` ("motive is not type correct") in goals whose walks mention it. Add the `rfl` lemma,
+  move the walk with `Walk.copy`, or prove the arithmetic for an arbitrary length and apply
+  it to the walk's length.
+- Using `show` to change the goal is flagged by a linter; use `change`.
+- `ring` may no longer be imported transitively; import `Mathlib.Tactic.Ring` or avoid it.
 
 **Measure and dimension**
 - Area formula: `MeasureTheory.addHaar_image_le_lintegral_abs_det_fderiv` in
   `Mathlib.MeasureTheory.Function.Jacobian`.
 - `dimH`, `ContDiffOn.dimH_image_le` and `hausdorffMeasure_of_dimH_lt` are in
   `Mathlib.Topology.MetricSpace.HausdorffDimension`.
-- `absolutelyContinuous_isAddHaarMeasure` is in `Mathlib.MeasureTheory.Measure.Haar.Unique`.
+- `absolutelyContinuous_isAddHaarMeasure` (in `Mathlib.MeasureTheory.Measure.Haar.Unique` at
+  v4.28.0) is gone by v4.34.1; find its successor before relying on it.
 - Bounded sets: `Bornology.IsVonNBounded ℝ S`.
 
 ## Assumed results
@@ -252,6 +323,9 @@ Aristotle grinds leaf lemmas and detects dependencies. It is not the theorem arc
   - Rewrite `import Mathlib` to granular imports.
   - Replace `exact?` with the actual term or tactic.
   - Reject any `axiom` it introduces, since axioms can shadow real definitions.
+  - Reject new definitions, global `@[simp]` attributes, `maxHeartbeats` overrides and
+    `pp.all`; none of them belongs in a leaf proof.
+  - Rebuild with `lake build --wfail`: Aristotle doesn't run the project's style linters.
 - Before trusting output, check Aristotle's Lean version against `lean-toolchain`.
 - Keep raw prover artifacts and run logs out of the public repository. Commit only the
   rewritten proofs, and credit Aristotle in the README.

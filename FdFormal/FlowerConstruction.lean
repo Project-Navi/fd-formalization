@@ -10,9 +10,6 @@ import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Combinatorics.SimpleGraph.Hasse
 import Mathlib.Combinatorics.SimpleGraph.Metric
 
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-
 /-!
 # (u,v)-Flower Graph Construction
 
@@ -60,6 +57,10 @@ are `FlowerEdge u v g`, defined recursively (parent × local edge),
 avoiding division/modular arithmetic on `Fin`. The lower bound on hub
 distance uses the rank potential `FlowerVert.rank`, which changes by at
 most 1 along an edge; the projection lemmas are not needed for it.
+
+## References
+
+- [Rozenfeld2007] §2, the recursive construction of the (u,v)-flowers.
 
 ## Tags
 
@@ -121,10 +122,10 @@ instance instFintypeFlowerEdge (u v g : ℕ) : Fintype (FlowerEdge u v g) := by
 theorem flowerEdge_card (u v g : ℕ) :
     Fintype.card (FlowerEdge u v g) = (u + v) ^ g := by
   induction g with
-  | zero => simp [FlowerEdge]
+  | zero => exact Fintype.card_unit
   | succ g ih =>
-    simp [FlowerEdge, Fintype.card_prod, Fintype.card_sum, Fintype.card_fin, ih, pow_succ,
-      mul_comm]
+    rw [show Fintype.card (FlowerEdge u v (g + 1)) = Fintype.card (FlowerEdge u v g) * (u + v)
+      from (Fintype.card_prod _ _).trans (by simp [Fintype.card_sum]), ih, pow_succ]
 
 /-- Vertex type for the (u,v)-flower at generation `g`.
 
@@ -155,6 +156,14 @@ def FlowerVert.embed (u v g : ℕ) : FlowerVert u v g → FlowerVert u v (g + 1)
   | .inl h => .inl h
   | .inr ⟨k, e, pos⟩ => .inr ⟨k.castSucc, e, pos⟩
 
+/-- The hubs embed as the hubs of the next generation. -/
+theorem FlowerVert.embed_hub0 (u v g : ℕ) :
+    FlowerVert.embed u v g (FlowerVert.hub0 u v g) = FlowerVert.hub0 u v (g + 1) := rfl
+
+/-- The hubs embed as the hubs of the next generation. -/
+theorem FlowerVert.embed_hub1 (u v g : ℕ) :
+    FlowerVert.embed u v g (FlowerVert.hub1 u v g) = FlowerVert.hub1 u v (g + 1) := rfl
+
 /-- `embed` is injective: distinct vertices at gen g remain distinct at gen g+1. -/
 theorem FlowerVert.embed_injective {u v g : ℕ} :
     Function.Injective (FlowerVert.embed u v g) := by
@@ -182,7 +191,7 @@ theorem FlowerVert.embed_ne_new {u v g : ℕ} (x : FlowerVert u v g)
     FlowerVert.embed u v g x ≠
       .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, e, pos⟩ := by
   cases x with
-  | inl _ => simp [embed]
+  | inl _ => exact Sum.inl_ne_inr
   | inr val =>
     intro h; have hk := congr_arg (fun s => (Sigma.fst s).val) (Sum.inr_injective h)
     simp only [Fin.val_castSucc] at hk; omega
@@ -286,7 +295,8 @@ theorem short_tgt_eq_succ_src (u v g : ℕ) (parent : FlowerEdge u v g)
     edgeTgt u v (g + 1) (parent, .inl i) =
     edgeSrc u v (g + 1) (parent, .inl ⟨i.val + 1, hi⟩) := by
   simp only [edgeTgt, edgeSrc, edgeEndpoints, localTgt, localSrc,
-    dif_neg (show ¬(i.val + 1 = u) by omega)]
+    dite_eq_right (show ¬(i.val + 1 = u) by omega)]
+  rfl
 
 /-- First short-path source is the embedded parent source. -/
 theorem short_first_eq_embed_src (u v g : ℕ) (hu : 1 < u)
@@ -301,7 +311,7 @@ theorem short_last_eq_embed_tgt (u v g : ℕ) (hu : 1 < u)
     edgeTgt u v (g + 1) (parent, .inl ⟨u - 1, by omega⟩) =
     FlowerVert.embed u v g (edgeTgt u v g parent) := by
   simp only [edgeTgt, edgeEndpoints, localTgt,
-    dif_pos (show (u - 1) + 1 = u by omega)]
+    dite_eq_left (show (u - 1) + 1 = u by omega)]
 
 /-- Consecutive long-path edges share an endpoint. -/
 theorem long_tgt_eq_succ_src (u v g : ℕ) (parent : FlowerEdge u v g)
@@ -309,7 +319,8 @@ theorem long_tgt_eq_succ_src (u v g : ℕ) (parent : FlowerEdge u v g)
     edgeTgt u v (g + 1) (parent, .inr j) =
     edgeSrc u v (g + 1) (parent, .inr ⟨j.val + 1, hj⟩) := by
   simp only [edgeTgt, edgeSrc, edgeEndpoints, localTgt, localSrc,
-    dif_neg (show ¬(j.val + 1 = v) by omega)]
+    dite_eq_right (show ¬(j.val + 1 = v) by omega)]
+  rfl
 
 /-- First long-path source is the embedded parent source. -/
 theorem long_first_eq_embed_src (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
@@ -324,7 +335,7 @@ theorem long_last_eq_embed_tgt (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
     edgeTgt u v (g + 1) (parent, .inr ⟨v - 1, by omega⟩) =
     FlowerVert.embed u v g (edgeTgt u v g parent) := by
   simp only [edgeTgt, edgeEndpoints, localTgt,
-    dif_pos (show (v - 1) + 1 = v by omega)]
+    dite_eq_left (show (v - 1) + 1 = v by omega)]
 
 /-! ## Layer 3: SimpleGraph -/
 
@@ -375,18 +386,17 @@ theorem gadget_adj_chain (u v g : ℕ) (hu : 1 < u)
     then edgeSrc u v (g + 1) (parent, .inl ⟨i.val, h⟩)
     else FlowerVert.embed u v g (edgeTgt u v g parent), ?_, ?_, ?_⟩
   · -- vertices 0 = embed(edgeSrc)
-    simp only [Fin.val_zero, dif_pos (by omega : (0 : ℕ) < u)]
-    exact short_first_eq_embed_src u v g hu parent
+    exact (dite_eq_left (by simp; omega)).trans (short_first_eq_embed_src u v g hu parent)
   · -- vertices u = embed(edgeTgt)
-    exact dif_neg (lt_irrefl u)
+    exact dite_eq_right (lt_irrefl u)
   · intro i
     by_cases hi : i.val + 1 < u
     · -- internal step: both in edgeSrc branch
-      simp only [Fin.val_castSucc, dif_pos i.isLt, Fin.val_succ, dif_pos hi]
+      simp only [Fin.val_castSucc, dite_eq_left i.isLt, Fin.val_succ, dite_eq_left hi]
       rw [← short_tgt_eq_succ_src u v g parent i hi]
       exact short_path_consecutive_adj u v g parent i
     · -- last step: i.castSucc in edgeSrc, i.succ in embed branch
-      simp only [Fin.val_castSucc, dif_pos i.isLt, Fin.val_succ, dif_neg hi]
+      simp only [Fin.val_castSucc, dite_eq_left i.isLt, Fin.val_succ, dite_eq_right hi]
       have hival : i.val = u - 1 := by omega
       have : i = ⟨u - 1, by omega⟩ := Fin.ext hival
       rw [this, ← short_last_eq_embed_tgt u v g hu parent]
@@ -397,7 +407,7 @@ Construction requires `edgeSrc_ne_edgeTgt` for irreflexivity. -/
 noncomputable def flowerGraph' (u v g : ℕ) :
     SimpleGraph (FlowerVert u v g) :=
   SimpleGraph.mk (flowerAdj' u v g)
-    (fun _ _ ⟨e, h⟩ => ⟨e, h.symm⟩)
+    ⟨fun _ _ ⟨e, h⟩ => ⟨e, h.symm⟩⟩
     ⟨fun a ⟨e, h⟩ => by
       rcases h with ⟨h1, h2⟩ | ⟨h1, h2⟩ <;>
         exact edgeSrc_ne_edgeTgt u v g e (h1 ▸ h2)⟩
@@ -428,7 +438,8 @@ theorem gadget_short_walk (u v g : ℕ) (hu : 1 < u)
   | zero => exact ⟨.nil, rfl⟩
   | succ k ih =>
     obtain ⟨w, hw⟩ := ih (by omega)
-    exact ⟨w.append (.cons (hadj ⟨k, by omega⟩) .nil), by simp [hw]⟩
+    exact ⟨w.append (.cons (hadj ⟨k, by omega⟩) .nil), by
+      rw [SimpleGraph.Walk.length_append, hw]; rfl⟩
 
 /-- Adjacent vertices in gen `g` are connected by a walk of length `u`
 in gen `g+1` (through the replacement gadget's short path). -/
@@ -471,11 +482,13 @@ theorem flowerGraph'_walk_hubs (u v g : ℕ) (hu : 1 < u) :
       w.length = u ^ g := by
   induction g with
   | zero =>
-    exact ⟨.cons (⟨(), Or.inl ⟨rfl, rfl⟩⟩ : (flowerGraph' u v 0).Adj _ _) .nil, by simp⟩
+    exact ⟨.cons (⟨(), Or.inl ⟨rfl, rfl⟩⟩ : (flowerGraph' u v 0).Adj _ _) .nil, by
+      rw [pow_zero]; rfl⟩
   | succ g ih =>
     obtain ⟨w, hw⟩ := ih
     obtain ⟨w', hw'⟩ := lift_walk u v g hu w
-    exact ⟨w', by rw [hw', hw, pow_succ, Nat.mul_comm]⟩
+    exact ⟨w'.copy (FlowerVert.embed_hub0 u v g) (FlowerVert.embed_hub1 u v g), by
+      rw [SimpleGraph.Walk.length_copy, hw', hw, pow_succ, Nat.mul_comm]⟩
 
 /-- Every new short-path vertex is reachable from the embedded source of its
 parent edge, by chaining through the short-path adjacencies. -/
@@ -499,7 +512,7 @@ theorem new_short_reachable (u v g : ℕ) (hu : 1 < u)
       short_path_consecutive_adj u v g parent ⟨0, by omega⟩
     rw [short_first_eq_embed_src u v g hu parent] at hadj
     convert hadj.reachable using 1
-    simp only [edgeTgt, edgeEndpoints, localTgt, dif_neg (by omega : ¬(0 + 1 = u))]
+    simp only [edgeTgt, edgeEndpoints, localTgt, dite_eq_right (by omega : ¬(0 + 1 = u))]
   | succ m ih =>
     intro hm
     have hadj : (flowerGraph' u v (g + 1)).Adj
@@ -509,10 +522,12 @@ theorem new_short_reachable (u v g : ℕ) (hu : 1 < u)
     have hsrc : edgeSrc u v (g + 1) (parent, .inl ⟨m + 1, by omega⟩) =
         .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl ⟨m, by omega⟩⟩ := by
       simp only [edgeSrc, edgeEndpoints, localSrc]
+      rfl
     have htgt : edgeTgt u v (g + 1) (parent, .inl ⟨m + 1, by omega⟩) =
         .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl ⟨m + 1, by omega⟩⟩ := by
       simp only [edgeTgt, edgeEndpoints, localTgt,
-        dif_neg (show ¬(m + 1 + 1 = u) by omega)]
+        dite_eq_right (show ¬(m + 1 + 1 = u) by omega)]
+      rfl
     rw [hsrc, htgt] at hadj
     exact (ih (by omega)).trans hadj.reachable
 
@@ -538,7 +553,7 @@ theorem new_long_reachable (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
       long_path_consecutive_adj u v g parent ⟨0, by omega⟩
     rw [long_first_eq_embed_src u v g hu huv parent] at hadj
     convert hadj.reachable using 1
-    simp only [edgeTgt, edgeEndpoints, localTgt, dif_neg (by omega : ¬(0 + 1 = v))]
+    simp only [edgeTgt, edgeEndpoints, localTgt, dite_eq_right (by omega : ¬(0 + 1 = v))]
   | succ m ih =>
     intro hm
     have hadj : (flowerGraph' u v (g + 1)).Adj
@@ -548,10 +563,12 @@ theorem new_long_reachable (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
     have hsrc : edgeSrc u v (g + 1) (parent, .inr ⟨m + 1, by omega⟩) =
         .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr ⟨m, by omega⟩⟩ := by
       simp only [edgeSrc, edgeEndpoints, localSrc]
+      rfl
     have htgt : edgeTgt u v (g + 1) (parent, .inr ⟨m + 1, by omega⟩) =
         .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr ⟨m + 1, by omega⟩⟩ := by
       simp only [edgeTgt, edgeEndpoints, localTgt,
-        dif_neg (show ¬(m + 1 + 1 = v) by omega)]
+        dite_eq_right (show ¬(m + 1 + 1 = v) by omega)]
+      rfl
     rw [hsrc, htgt] at hadj
     exact (ih (by omega)).trans hadj.reachable
 
@@ -664,7 +681,7 @@ theorem rank_embed (u v g : ℕ) (x : FlowerVert u v g) :
   | inl h => rfl
   | inr val =>
     obtain ⟨k, parent, pos⟩ := val
-    simp only [FlowerVert.embed, FlowerVert.rank, Fin.val_castSucc, dif_pos k.isLt, Fin.eta]
+    simp only [FlowerVert.embed, FlowerVert.rank, Fin.val_castSucc, dite_eq_left k.isLt, Fin.eta]
 
 /-- Rank of a new short-path vertex at generation g. -/
 theorem rank_new_short (u v g : ℕ) (parent : FlowerEdge u v g) (i : Fin (u - 1)) :
@@ -674,7 +691,7 @@ theorem rank_new_short (u v g : ℕ) (parent : FlowerEdge u v g) (i : Fin (u - 1
         FlowerVert.rank u v g (edgeTgt u v g parent)
     then u * FlowerVert.rank u v g (edgeSrc u v g parent)
     else u * FlowerVert.rank u v g (edgeSrc u v g parent) + (i.val + 1) := by
-  simp only [FlowerVert.rank, dif_neg (by omega : ¬(g < g))]
+  simp only [FlowerVert.rank, dite_eq_right (by omega : ¬(g < g))]
 
 /-- Rank of a new long-path vertex at generation g. -/
 theorem rank_new_long (u v g : ℕ) (parent : FlowerEdge u v g) (j : Fin (v - 1)) :
@@ -685,7 +702,7 @@ theorem rank_new_long (u v g : ℕ) (parent : FlowerEdge u v g) (j : Fin (v - 1)
     then u * FlowerVert.rank u v g (edgeSrc u v g parent)
     else u * FlowerVert.rank u v g (edgeSrc u v g parent) +
       ((j.val + 1) * u) / v := by
-  simp only [FlowerVert.rank, dif_neg (by omega : ¬(g < g))]
+  simp only [FlowerVert.rank, dite_eq_right (by omega : ¬(g < g))]
 
 /-- Rank bounds along edges: non-decreasing and 1-Lipschitz.
 Both bounds are proved simultaneously by induction, since the monotonicity
@@ -703,53 +720,102 @@ theorem rank_edge_bounds (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
   | succ g ih =>
     obtain ⟨parent, localE⟩ := e
     obtain ⟨ihle, ihub⟩ := ih parent
-    -- Helper: in the non-flat case, tgtR = srcR + 1
-    have htgt_eq : ¬(FlowerVert.rank u v g (edgeSrc u v g parent) =
-        FlowerVert.rank u v g (edgeTgt u v g parent)) →
-        FlowerVert.rank u v g (edgeTgt u v g parent) =
-        FlowerVert.rank u v g (edgeSrc u v g parent) + 1 :=
-      fun h => Nat.le_antisymm ihub (Nat.succ_le_of_lt (Nat.lt_of_le_of_ne ihle h))
-    -- Unfold everything, split all ifs
-    -- Case split on local edge, unfold endpoints and rank.
-    -- rank_embed handles stuck `rank(embed x)` for abstract x.
-    -- ← edgeSrc/edgeTgt normalizes (edgeEndpoints...).1/.2 so htgt_eq matches.
-    rcases localE with ⟨⟨_ | n, hi⟩⟩ | ⟨⟨_ | n, hj⟩⟩ <;>
-      simp only [edgeSrc, edgeTgt, edgeEndpoints, localSrc, localTgt,
-        FlowerVert.rank, dif_neg (lt_irrefl g)] <;>
-      split_ifs <;>
-      simp only [FlowerVert.rank, rank_embed,
-        edgeEndpoints_fst, edgeEndpoints_snd,
-        dif_neg (lt_irrefl g)] <;>
-      (try split_ifs) <;>
-      simp only [edgeEndpoints_fst, edgeEndpoints_snd, Nat.zero_add] at * <;>
-      first
-      | exact ⟨le_rfl, Nat.le_succ _⟩
-      | exact ⟨Nat.le_add_right _ _, le_rfl⟩
-      | (constructor <;> omega)
-      | (constructor
-         · exact Nat.le_add_right _ _
-         · have : (1 * u) / v ≤ 1 := Nat.div_le_of_le_mul (by omega); omega)
-      | (constructor
-         · exact Nat.add_le_add_left
-             (Nat.div_le_div_right (Nat.mul_le_mul_right u (by omega))) _
-         · exact Nat.add_le_add_left (div_succ_le (n + 1) u v huv (by omega)) _)
-      | contradiction
-      | (have h_eq : FlowerVert.rank u v g (edgeSrc u v g parent) =
-            FlowerVert.rank u v g (edgeTgt u v g parent) := ‹_›
-         rw [h_eq]; exact ⟨le_rfl, Nat.le_succ _⟩)
-      | (have h := htgt_eq ‹_›; rw [h, mul_add, mul_one]
-         constructor <;> linarith)
-      | (have h := htgt_eq ‹_›; rw [h, mul_add, mul_one]
-         constructor
-         · exact Nat.add_le_add_left (Nat.div_le_of_le_mul (by
-             nlinarith [Nat.mul_le_mul_left u (show n + 1 ≤ v by omega),
-               mul_comm (n + 1) u])) _
-         · suffices u - 1 ≤ (n + 1) * u / v by omega
-           calc u - 1 = (u - 1) * v / v :=
-                 (Nat.mul_div_cancel (u - 1) (show 0 < v by omega)).symm
-             _ ≤ (n + 1) * u / v := Nat.div_le_div_right (by
-                 zify [show 1 ≤ u by omega, show 1 ≤ v by omega] at *
-                 nlinarith))
+    -- Ranks of the gadget's boundary and internal vertices, in terms of the parent's ranks.
+    have hS := rank_embed u v g (edgeSrc u v g parent)
+    have hT := rank_embed u v g (edgeTgt u v g parent)
+    have hshort (m : ℕ) (hm : m + 1 < u) : FlowerVert.rank u v (g + 1)
+        (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl ⟨m, by omega⟩⟩) =
+        if FlowerVert.rank u v g (edgeSrc u v g parent) =
+          FlowerVert.rank u v g (edgeTgt u v g parent)
+        then u * FlowerVert.rank u v g (edgeSrc u v g parent)
+        else u * FlowerVert.rank u v g (edgeSrc u v g parent) + (m + 1) :=
+      rank_new_short u v g parent ⟨m, by omega⟩
+    have hlong (m : ℕ) (hm : m + 1 < v) : FlowerVert.rank u v (g + 1)
+        (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr ⟨m, by omega⟩⟩) =
+        if FlowerVert.rank u v g (edgeSrc u v g parent) =
+          FlowerVert.rank u v g (edgeTgt u v g parent)
+        then u * FlowerVert.rank u v g (edgeSrc u v g parent)
+        else u * FlowerVert.rank u v g (edgeSrc u v g parent) + (m + 1) * u / v :=
+      rank_new_long u v g parent ⟨m, by omega⟩
+    have hv : 0 < v := by omega
+    rcases localE with ⟨⟨_ | m, hi⟩⟩ | ⟨⟨_ | m, hj⟩⟩
+    · -- first short edge: embedded source to the first internal vertex
+      have htgt : edgeTgt u v (g + 1) (parent, .inl ⟨0, hi⟩) =
+          .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl ⟨0, by omega⟩⟩ := by
+        simp only [edgeTgt, edgeEndpoints, localTgt, dite_eq_right (show ¬(0 + 1 = u) by omega)]
+        rfl
+      rw [short_first_eq_embed_src u v g hu parent, htgt, hS, hshort 0 (by omega)]
+      split_ifs <;> omega
+    · have hsrc : edgeSrc u v (g + 1) (parent, .inl ⟨m + 1, hi⟩) =
+          .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl ⟨m, by omega⟩⟩ := by
+        simp only [edgeSrc, edgeEndpoints, localSrc]
+        rfl
+      by_cases hlast : m + 1 + 1 = u
+      · -- last short edge: last internal vertex to the embedded target
+        have htgt : edgeTgt u v (g + 1) (parent, .inl ⟨m + 1, hi⟩) =
+            FlowerVert.embed u v g (edgeTgt u v g parent) := by
+          simp only [edgeTgt, edgeEndpoints, localTgt, dite_eq_left hlast]
+        rw [hsrc, htgt, hT, hshort m (by omega)]
+        split_ifs with h
+        · rw [h]; omega
+        · rw [show FlowerVert.rank u v g (edgeTgt u v g parent) =
+            FlowerVert.rank u v g (edgeSrc u v g parent) + 1 by omega, mul_add, mul_one]
+          omega
+      · -- interior short edge
+        have htgt : edgeTgt u v (g + 1) (parent, .inl ⟨m + 1, hi⟩) =
+            .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl ⟨m + 1, by omega⟩⟩ := by
+          simp only [edgeTgt, edgeEndpoints, localTgt, dite_eq_right hlast]
+          rfl
+        rw [hsrc, htgt, hshort m (by omega), hshort (m + 1) (by omega)]
+        split_ifs <;> omega
+    · -- first long edge: embedded source to the first internal vertex
+      have htgt : edgeTgt u v (g + 1) (parent, .inr ⟨0, hj⟩) =
+          .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr ⟨0, by omega⟩⟩ := by
+        simp only [edgeTgt, edgeEndpoints, localTgt, dite_eq_right (show ¬(0 + 1 = v) by omega)]
+        rfl
+      rw [long_first_eq_embed_src u v g hu huv parent, htgt, hS, hlong 0 (by omega)]
+      have hq : (0 + 1) * u / v ≤ 1 := Nat.div_le_of_le_mul (by omega)
+      generalize (0 + 1) * u / v = q at hq ⊢
+      split_ifs <;> omega
+    · have hsrc : edgeSrc u v (g + 1) (parent, .inr ⟨m + 1, hj⟩) =
+          .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr ⟨m, by omega⟩⟩ := by
+        simp only [edgeSrc, edgeEndpoints, localSrc]
+        rfl
+      by_cases hlast : m + 1 + 1 = v
+      · -- last long edge: last internal vertex to the embedded target
+        have htgt : edgeTgt u v (g + 1) (parent, .inr ⟨m + 1, hj⟩) =
+            FlowerVert.embed u v g (edgeTgt u v g parent) := by
+          simp only [edgeTgt, edgeEndpoints, localTgt, dite_eq_left hlast]
+        rw [hsrc, htgt, hT, hlong m (by omega)]
+        -- `(v - 1) * u / v` lies in `[u - 1, u]` because `u ≤ v`.
+        have hle : (m + 1) * u / v ≤ u :=
+          Nat.div_le_of_le_mul (Nat.mul_le_mul_right u (by omega))
+        have hge : u - 1 ≤ (m + 1) * u / v := by
+          rw [Nat.le_div_iff_mul_le hv]
+          have hvm : v = m + 2 := by omega
+          subst hvm
+          have : u * (m + 2) = (m + 1) * u + u := by
+            rw [Nat.mul_comm (m + 1) u]; exact Nat.mul_succ u (m + 1)
+          rw [Nat.sub_one_mul]
+          omega
+        generalize (m + 1) * u / v = q at hle hge ⊢
+        split_ifs with h
+        · rw [h]; omega
+        · rw [show FlowerVert.rank u v g (edgeTgt u v g parent) =
+            FlowerVert.rank u v g (edgeSrc u v g parent) + 1 by omega, mul_add, mul_one]
+          omega
+      · -- interior long edge
+        have htgt : edgeTgt u v (g + 1) (parent, .inr ⟨m + 1, hj⟩) =
+            .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr ⟨m + 1, by omega⟩⟩ := by
+          simp only [edgeTgt, edgeEndpoints, localTgt, dite_eq_right hlast]
+          rfl
+        rw [hsrc, htgt, hlong m (by omega), hlong (m + 1) (by omega)]
+        have hmono : (m + 1) * u / v ≤ (m + 1 + 1) * u / v :=
+          Nat.div_le_div_right (Nat.mul_le_mul_right u (by omega))
+        have hstep := div_succ_le (m + 1) u v huv hv
+        generalize (m + 1) * u / v = q at hmono hstep ⊢
+        generalize (m + 1 + 1) * u / v = q' at hmono hstep ⊢
+        split_ifs <;> omega
 
 /-- Rank is non-decreasing along edges: rank(edgeSrc) ≤ rank(edgeTgt). -/
 theorem rank_edgeSrc_le_edgeTgt (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v)
@@ -942,6 +1008,7 @@ theorem FlowerVert.project_embed (u v g : ℕ) (x : FlowerVert u v g) :
   | inr val =>
     obtain ⟨k, e, pos⟩ := val
     simp [FlowerVert.embed, FlowerVert.project, Fin.val_castSucc, Fin.eta]
+    rfl
 
 /-- Hub 0 projects to hub 0. -/
 theorem FlowerVert.project_hub0 (u v g : ℕ) :

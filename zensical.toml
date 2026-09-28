@@ -4,7 +4,7 @@
 [project]
 name = "fd-formalization"
 site_name = "fd-formalization"
-description = "Lean 4 proofs of the (u,v)-flower hub distance and log-ratio limit"
+description = "Lean 4 proofs of the (u,v)-flower hub distance, log-ratio limit and box-counting dimension"
 site_url = "https://project-navi.github.io/fd-formalization"
 repo_url = "https://github.com/Project-Navi/fd-formalization"
 repo_name = "Project-Navi/fd-formalization"

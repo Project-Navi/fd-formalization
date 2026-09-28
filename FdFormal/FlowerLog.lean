@@ -7,9 +7,6 @@ import FdFormal.FlowerCounts
 import FdFormal.FlowerDiameter
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-
 /-!
 # Flower Log Lemmas
 
@@ -17,12 +14,23 @@ Reusable log identities and squeeze-sandwich bounds for the (u,v)-flower
 model. These extract calculations that were previously inlined in
 `FlowerDimension.lean` into standalone lemmas.
 
+## Main definitions
+
+None: this file proves identities and bounds about `flowerHubDist`, `flowerEdgeCount` and
+`flowerVertCount`.
+
 ## Main statements
 
 - `log_flowerHubDist_eq` — `log L_g = g * log u`
 - `log_flowerEdgeCount_eq` — `log E_g = g * log(u + v)`
 - `log_flowerVertCount_residual_lower` — residual lower bound for squeeze
 - `log_flowerVertCount_residual_upper` — residual upper bound for squeeze
+
+## Implementation notes
+
+The residual bounds compare `log N_g` with `g * log (u + v)` using the two-sided bounds on
+`N_g` from `FlowerCounts`, which avoids taking the logarithm of the exact sum
+`(w - 2) * w^g + w`.
 
 ## References
 

@@ -6,9 +6,6 @@ Authors: Nelson Spence
 import Mathlib.Combinatorics.SimpleGraph.Hasse
 import Mathlib.Combinatorics.SimpleGraph.Metric
 
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-
 /-!
 # Distance in path graphs
 
@@ -124,7 +121,7 @@ theorem pathGraph_edist {n : ℕ} (i j : Fin (n + 1)) :
 theorem pathGraph_dist {n : ℕ} (i j : Fin (n + 1)) :
     (pathGraph (n + 1)).dist i j =
       if i.val ≤ j.val then j.val - i.val else i.val - j.val := by
-  rw [SimpleGraph.dist, pathGraph_edist, ENat.toNat_coe]
+  rw [SimpleGraph.dist, pathGraph_edist, ENat.toNat_natCast]
 
 /-- Distance from `0` to `Fin.last n` in `pathGraph (n + 1)` is `n`. -/
 theorem pathGraph_dist_zero_last (n : ℕ) :
