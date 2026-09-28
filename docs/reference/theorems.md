@@ -63,7 +63,7 @@ def HasBoxDimension {V : ℕ → Type*} (G : (g : ℕ) → SimpleGraph (V g)) (d
       atTop (𝓝 d)
 ```
 
-`boxCount ℓ` is the fewest vertex sets of extended diameter \(< \ell\) that cover the graph (Song, Havlin & Makse 2005). The diameters must diverge, and the limit is required along every scale sequence with \(\operatorname{diam} G_g / \ell_g \to \infty\), so it does not depend on a choice of scales, and \(d\) is unique (`HasBoxDimension.unique`). At \(\ell_g = 1\) it contains the mass-scaling law \(\log \lvert V_g \rvert / \log \operatorname{diam} G_g \to d\) (`HasBoxDimension.tendsto_log_card_div_log_diam`). The graphs must be finite, so `boxCount` never takes its junk value. F4 proves it for the flower graphs; see [Proof Strategy](../explanation/proof-strategy.md#f4-box-counting).
+`boxCount ℓ` is the fewest vertex sets of extended diameter \(< \ell\) that cover the graph (Song, Havlin & Makse 2005). `HasBoxDimension` is a network box dimension: it concerns a sequence of finite graphs as the generation \(g \to \infty\), not the classical box dimension of one bounded metric space as the scale tends to zero. The diameters must diverge, and the limit is required along every scale sequence with \(\operatorname{diam} G_g / \ell_g \to \infty\), so it does not depend on a choice of scales, and \(d\) is unique (`HasBoxDimension.unique`). At \(\ell_g = 1\) it contains the mass-scaling law \(\log \lvert V_g \rvert / \log \operatorname{diam} G_g \to d\) (`HasBoxDimension.tendsto_log_card_div_log_diam`). The graphs must be finite, so `boxCount` never takes its junk value. F4 proves it for the flower graphs; see [Proof Strategy](../explanation/proof-strategy.md#f4-box-counting).
 
 ---
 

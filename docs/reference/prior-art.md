@@ -4,7 +4,7 @@ The README makes a priority claim: to our knowledge, F4 is the first machine-che
 
 ## The claim, exactly
 
-- **What is claimed:** the first machine-checked computation, in any proof assistant, of the box-covering dimension of a recursively growing family of **finite combinatorial graphs**. Boxes are vertex sets of intrinsic (graph-distance) diameter less than \(\ell\), in the Song–Havlin–Makse sense, and the limit is taken along every admissible scale sequence.
+- **What is claimed:** the first machine-checked computation, in any proof assistant, of the box-covering dimension (network box dimension) of a recursively growing family of **finite combinatorial graphs**. Boxes are vertex sets of intrinsic (graph-distance) diameter less than \(\ell\), in the Song–Havlin–Makse sense, and the limit is taken along every admissible scale sequence.
 - **What is not claimed:**
     - that the value \(\log(u+v)/\log u\) is new;
     - that this is the first proof of it, informal or rigorous;
@@ -50,6 +50,16 @@ The README makes a priority claim: to our knowledge, F4 is the first machine-che
 
 - [hawkrobe/linglib](https://github.com/hawkrobe/linglib) formalizes Birkhoff factorization for Connes–Kreimer renormalization, in the QFT sense.
 - No formalization of renormalization-group, decimation, hierarchical-lattice or Feigenbaum renormalization was found. Lanford's Feigenbaum proof is computer-assisted (interval arithmetic), not a proof-assistant formalization.
+
+## How the claim could be wrong
+
+These are the kinds of prior work that would weaken or refute the claim. None was found, but a search of public indexes cannot rule them out:
+
+- A formal result about grid graphs, trees or another graph family that proves a covering-number exponent without calling it a box-counting dimension.
+- A general formalization of Minkowski or box dimension, for example in the Isabelle AFP, applied to a metric space derived from a graph.
+- A repository that is unindexed, unpublished or not in English, in any proof assistant.
+
+**Related results the claim does not cover:** box dimensions of \(k\)-automatic sets ([arXiv 2205.02915](https://arxiv.org/abs/2205.02915)). This is ordinary mathematics, not a formalization, and it concerns subsets of Euclidean space defined by automata, not network box covering of a graph family. The same applies to formal fractal-dimension results for sets in \(\mathbb{R}\) such as the Cantor set, listed above.
 
 ## Corrections
 
