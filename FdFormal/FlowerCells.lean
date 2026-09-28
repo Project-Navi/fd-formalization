@@ -256,9 +256,11 @@ private theorem vert_endpoint (hu : 1 < u) (g : ℕ) (w : FlowerVert u v g) :
         · refine ⟨(f, .inl ⟨p.val, by omega⟩), Or.inr ?_⟩
           have hp : ¬ (p.val + 1 = u) := by omega
           simp only [edgeTgt, edgeEndpoints, localTgt, hp, dite_false]
+          rfl
         · refine ⟨(f, .inr ⟨p.val, by omega⟩), Or.inr ?_⟩
           have hp : ¬ (p.val + 1 = v) := by omega
           simp only [edgeTgt, edgeEndpoints, localTgt, hp, dite_false]
+          rfl
 
 private theorem exists_cellEmbed_eq_embedN (hu : 1 < u) (k j : ℕ) (w : FlowerVert u v k) :
     ∃ (e : FlowerEdge u v k) (y : FlowerVert u v j),
@@ -279,6 +281,7 @@ theorem exists_cellEmbed_eq (hu : 1 < u) (k j : ℕ) (x : FlowerVert u v (k + j)
     · obtain ⟨m, rfl⟩ : ∃ m, i = k + m := ⟨i - k, by omega⟩
       refine ⟨FlowerEdge.trunc k m f, .inr ⟨⟨m, by omega⟩, FlowerEdge.suffix k m f, pos⟩, ?_⟩
       simp only [cellEmbed, FlowerEdge.graft_trunc_suffix]
+      rfl
 
 /-- Distinct cells meet only at hubs: a common vertex is a hub of each cell. -/
 theorem cellEmbed_eq_of_ne (k : ℕ) {e e' : FlowerEdge u v k} (hee' : e ≠ e') (j : ℕ)
@@ -329,7 +332,7 @@ theorem cellPotential_cellEmbed (k : ℕ) (e : FlowerEdge u v k) (j : ℕ)
     cellPotential k e j φ (cellEmbed k e j y) = φ y := by
   have h : ∃ z, cellEmbed k e j z = cellEmbed k e j y := ⟨y, rfl⟩
   unfold cellPotential
-  rw [dif_pos h, cellEmbed_injective k e j h.choose_spec]
+  rw [dite_eq_left h, cellEmbed_injective k e j h.choose_spec]
 
 /-- A potential that vanishes at the hubs, transported to the cell of `e`, is zero on every
 other cell. -/

@@ -5,9 +5,6 @@ Authors: Nelson Spence
 -/
 import FdFormal.FlowerCounts
 
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-
 /-!
 # Flower Graph Hub-Distance Scaling
 

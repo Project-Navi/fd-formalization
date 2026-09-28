@@ -10,9 +10,6 @@ import Mathlib.Order.Filter.AtTopBot.Field
 import Mathlib.Topology.Algebra.Order.Field
 import Mathlib.Topology.Order.Basic
 
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-
 /-!
 # Log-Ratio Convergence for (u,v)-Flower Graphs
 

@@ -132,7 +132,7 @@ private theorem hub_walk_invariant (hu : 1 < u) (huv : u ≤ v) (g : ℕ)
   induction g with
   | zero =>
     rcases x with h | ⟨⟨k, hk⟩, _⟩
-    · exact ⟨h, .nil, by simp⟩
+    · exact ⟨h, .nil, by change 2 * 0 + v ≤ v * u ^ 0; simp⟩
     · omega
   | succ g ih =>
     -- embedded vertices
@@ -143,9 +143,13 @@ private theorem hub_walk_invariant (hu : 1 < u) (huv : u ≤ v) (g : ℕ)
       obtain ⟨h, w, hw⟩ := ih y
       obtain ⟨w', hw'⟩ := lift_walk u v g hu w
       refine ⟨h, w', ?_⟩
-      rw [hw', pow_succ]
-      have := Nat.mul_le_mul_left u hw
-      nlinarith
+      -- Tactics cannot rewrite inside `w'` (its endpoint is `embed (.inl h)`), so prove the
+      -- bound for an arbitrary length and apply it.
+      have key (L : ℕ) (hL : L = u * w.length) : 2 * L + u * v ≤ v * u ^ (g + 1) := by
+        subst hL
+        rw [pow_succ]
+        nlinarith [Nat.mul_le_mul_left u hw]
+      exact key _ hw'
     rcases flowerVert_succ_cases g x with ⟨y, rfl⟩ | ⟨parent, pos, rfl⟩
     · obtain ⟨h, w, hw⟩ := hemb y
       exact ⟨h, w, by nlinarith⟩
@@ -157,8 +161,7 @@ private theorem hub_walk_invariant (hu : 1 < u) (huv : u ≤ v) (g : ℕ)
         obtain ⟨z, w, hw⟩ := hnear
         obtain ⟨h, w', hw'⟩ := hemb z
         refine ⟨h, w.append w', ?_⟩
-        rw [SimpleGraph.Walk.length_append]
-        nlinarith
+        nlinarith [SimpleGraph.Walk.length_append w w']
       rcases pos with i | j
       · let f : ℕ → FlowerVert u v (g + 1) := fun n =>
           if hn : n < u then edgeSrc u v (g + 1) (parent, .inl ⟨n, hn⟩)
@@ -166,54 +169,66 @@ private theorem hub_walk_invariant (hu : 1 < u) (huv : u ≤ v) (g : ℕ)
         have hf : ∀ n < u, (flowerGraph' u v (g + 1)).Adj (f n) (f (n + 1)) := by
           intro n hn
           by_cases hn1 : n + 1 < u
-          · simp only [f, dif_pos hn, dif_pos hn1]
+          · simp only [f, dite_eq_left hn, dite_eq_left hn1]
             rw [← short_tgt_eq_succ_src u v g parent ⟨n, hn⟩ hn1]
             exact short_path_consecutive_adj u v g parent ⟨n, hn⟩
-          · simp only [f, dif_pos hn, dif_neg hn1]
+          · simp only [f, dite_eq_left hn, dite_eq_right hn1]
             have : (⟨n, hn⟩ : Fin u) = ⟨u - 1, by omega⟩ := Fin.ext (by simp; omega)
             rw [this, ← short_last_eq_embed_tgt u v g hu parent]
             exact short_path_consecutive_adj u v g parent ⟨u - 1, by omega⟩
         have hf0 : f 0 = FlowerVert.embed u v g (edgeSrc u v g parent) := by
-          simp only [f, dif_pos (by omega : 0 < u)]
+          simp only [f, dite_eq_left (by omega : 0 < u)]
           exact short_first_eq_embed_src u v g hu parent
         have hfu : f u = FlowerVert.embed u v g (edgeTgt u v g parent) := by
-          simp only [f, dif_neg (lt_irrefl u)]
+          simp only [f, dite_eq_right (lt_irrefl u)]
         have hfi : f (i.val + 1) = .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inl i⟩ := by
-          simp only [f, dif_pos (by omega : i.val + 1 < u)]
+          simp only [f, dite_eq_left (by omega : i.val + 1 < u)]
           simp only [edgeSrc, edgeEndpoints, localSrc]
+          rfl
         have hi := i.isLt
         by_cases hle : 2 * (i.val + 1) ≤ v
         · obtain ⟨w, hw⟩ := chain_walk _ f u hf 0 (i.val + 1) (by omega) (by omega)
-          exact ⟨edgeSrc u v g parent, (w.copy hf0 hfi).reverse, by simp [hw]; omega⟩
+          exact ⟨edgeSrc u v g parent, (w.copy hf0 hfi).reverse, by
+            have := (w.copy hf0 hfi).length_reverse
+            have := w.length_copy hf0 hfi
+            omega⟩
         · obtain ⟨w, hw⟩ := chain_walk _ f u hf (i.val + 1) u (by omega) le_rfl
-          exact ⟨edgeTgt u v g parent, w.copy hfi hfu, by simp [hw]; omega⟩
+          exact ⟨edgeTgt u v g parent, w.copy hfi hfu, by
+            have := w.length_copy hfi hfu
+            omega⟩
       · let f : ℕ → FlowerVert u v (g + 1) := fun n =>
           if hn : n < v then edgeSrc u v (g + 1) (parent, .inr ⟨n, hn⟩)
           else FlowerVert.embed u v g (edgeTgt u v g parent)
         have hf : ∀ n < v, (flowerGraph' u v (g + 1)).Adj (f n) (f (n + 1)) := by
           intro n hn
           by_cases hn1 : n + 1 < v
-          · simp only [f, dif_pos hn, dif_pos hn1]
+          · simp only [f, dite_eq_left hn, dite_eq_left hn1]
             rw [← long_tgt_eq_succ_src u v g parent ⟨n, hn⟩ hn1]
             exact long_path_consecutive_adj u v g parent ⟨n, hn⟩
-          · simp only [f, dif_pos hn, dif_neg hn1]
+          · simp only [f, dite_eq_left hn, dite_eq_right hn1]
             have : (⟨n, hn⟩ : Fin v) = ⟨v - 1, by omega⟩ := Fin.ext (by simp; omega)
             rw [this, ← long_last_eq_embed_tgt u v g hu huv parent]
             exact long_path_consecutive_adj u v g parent ⟨v - 1, by omega⟩
         have hf0 : f 0 = FlowerVert.embed u v g (edgeSrc u v g parent) := by
-          simp only [f, dif_pos (by omega : 0 < v)]
+          simp only [f, dite_eq_left (by omega : 0 < v)]
           exact long_first_eq_embed_src u v g hu huv parent
         have hfv : f v = FlowerVert.embed u v g (edgeTgt u v g parent) := by
-          simp only [f, dif_neg (lt_irrefl v)]
+          simp only [f, dite_eq_right (lt_irrefl v)]
         have hfj : f (j.val + 1) = .inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, .inr j⟩ := by
-          simp only [f, dif_pos (by omega : j.val + 1 < v)]
+          simp only [f, dite_eq_left (by omega : j.val + 1 < v)]
           simp only [edgeSrc, edgeEndpoints, localSrc]
+          rfl
         have hj := j.isLt
         by_cases hle : 2 * (j.val + 1) ≤ v
         · obtain ⟨w, hw⟩ := chain_walk _ f v hf 0 (j.val + 1) (by omega) (by omega)
-          exact ⟨edgeSrc u v g parent, (w.copy hf0 hfj).reverse, by simp [hw]; omega⟩
+          exact ⟨edgeSrc u v g parent, (w.copy hf0 hfj).reverse, by
+            have := (w.copy hf0 hfj).length_reverse
+            have := w.length_copy hf0 hfj
+            omega⟩
         · obtain ⟨w, hw⟩ := chain_walk _ f v hf (j.val + 1) v (by omega) le_rfl
-          exact ⟨edgeTgt u v g parent, w.copy hfj hfv, by simp [hw]; omega⟩
+          exact ⟨edgeTgt u v g parent, w.copy hfj hfv, by
+            have := w.length_copy hfj hfv
+            omega⟩
 
 /-- Every vertex is within `v * u ^ g` of a hub. -/
 theorem dist_hub_le (hu : 1 < u) (huv : u ≤ v) (g : ℕ) (x : FlowerVert u v g) :

@@ -7,9 +7,6 @@ import Mathlib.Combinatorics.SimpleGraph.Metric
 import Mathlib.Combinatorics.SimpleGraph.Finite
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-
 /-!
 # Log-Ratio Dimension for Graph Families
 

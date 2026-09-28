@@ -7,9 +7,6 @@ import FdFormal.FlowerCounts
 import FdFormal.FlowerDiameter
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-
 /-!
 # Flower Log Lemmas
 

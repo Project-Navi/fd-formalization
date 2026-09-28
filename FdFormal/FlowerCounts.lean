@@ -5,10 +5,7 @@ Authors: Nelson Spence
 -/
 import Mathlib.Tactic.Zify
 import Mathlib.Tactic.Linarith
-import Mathlib.Data.Real.Basic
-
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
+import Mathlib.Basic.Real.Basic
 
 /-!
 # Flower Graph Exact Counts

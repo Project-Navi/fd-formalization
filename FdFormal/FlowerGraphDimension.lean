@@ -7,9 +7,6 @@ import FdFormal.FlowerConstruction
 import FdFormal.FlowerDimension
 import FdFormal.FlowerLogRatio
 
-set_option relaxedAutoImplicit false
-set_option autoImplicit false
-
 /-!
 # Log-Ratio Dimension of the Flower Graphs
 
