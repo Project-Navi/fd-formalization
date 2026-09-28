@@ -6,7 +6,7 @@ Notable merged pull requests.
 
 ## 2026-09-27
 
-- [#22](https://github.com/Project-Navi/fd-formalization/pull/22) --- final polish from an independent review: `HasBoxDimension` requires finite graphs (so `boxCount` never takes its junk value) and gains `HasBoxDimension.unique`; `FlowerDiameter.lean` is renamed `FlowerHubDist.lean` (it defines the hub distance); unused projection lemmas and real-valued wrappers are removed; the README opens with what the project proves.
+- [#22](https://github.com/Project-Navi/fd-formalization/pull/22) --- final polish from an independent review: `HasBoxDimension` requires finite graphs (so `boxCount` never takes its junk value) and gains `HasBoxDimension.unique`; `FlowerDiameter.lean` is renamed `FlowerHubDist.lean` (it defines the hub distance); unused projection lemmas and real-valued wrappers are removed; the README opens with what the project proves and places it against prior work (Rozenfeld et al. 2007; Li 2024).
 - [#21](https://github.com/Project-Navi/fd-formalization/pull/21) --- F4: the flower graphs have box-counting dimension \(\log(u+v)/\log u\) (`flowerGraph_hasBoxDimension`), completing the roadmap. New modules `BoxCounting`, `BoxScaling`, `FlowerCells`, `FlowerRadius` and `FlowerBoxDimension`. Lean and Mathlib move to v4.34.1; `GraphBall.lean` is removed in favour of Mathlib's `SimpleGraph.ball`. 76 declarations on the axiom dashboard.
 
 ## 2026-03-28

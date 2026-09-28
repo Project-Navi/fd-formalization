@@ -9,6 +9,10 @@ A complete Lean 4 and Mathlib (v4.34.1) proof that the (u,v)-flowers of Rozenfel
 
 Not covered: `u = 1`, the transfractal case. There the hub distance is `1 ^ g = 1` and the diameter grows only linearly in `g`, so there is no length scale factor `u > 1` whose logarithm could serve as the denominator.
 
+## Prior work
+
+To our knowledge, this is the first machine-checked proof, in Lean 4 with Mathlib, that the Rozenfeld–Havlin–ben-Avraham (u,v)-flowers have box-counting dimension `log (u + v) / log u`. The value was derived heuristically by Rozenfeld et al. (2007) and follows from Li's theorem on iterated graph systems (*Proc. R. Soc. A*, 2024); our formal statement holds along every scale sequence with `diam / ℓ → ∞`.
+
 ## Verify
 
 ```bash
@@ -21,4 +25,4 @@ lake env lean -DwarningAsError=true FdFormal/Verify.lean
 
 ## Credit and license
 
-Formalization by Nelson Spence. Aristotle (Harmonic) proved leaf lemmas and simplified proofs, and proved the box-counting modules against hand-written definitions and statements; Claude assisted with Lean. For the mathematics, cite H. D. Rozenfeld, S. Havlin and D. ben-Avraham, "Fractal and transfractal recursive scale-free nets", *New J. Phys.* 9, 175 (2007), and for box covering C. Song, S. Havlin and H. A. Makse, "Self-similarity of complex networks", *Nature* 433, 392 (2005). Apache 2.0; see [LICENSE](LICENSE).
+Formalization by Nelson Spence. Aristotle (Harmonic) proved leaf lemmas and simplified proofs, and proved the box-counting modules against hand-written definitions and statements; Claude assisted with Lean. For the mathematics, cite H. D. Rozenfeld, S. Havlin and D. ben-Avraham, "Fractal and transfractal recursive scale-free nets", *New J. Phys.* 9, 175 (2007), for box covering C. Song, S. Havlin and H. A. Makse, "Self-similarity of complex networks", *Nature* 433, 392 (2005), and for the rigorous dimension theory of iterated graph systems N. Z. Li, "Fractal dimensions for iterated graph systems", *Proc. R. Soc. A* 480, 20240406 (2024), [doi:10.1098/rspa.2024.0406](https://doi.org/10.1098/rspa.2024.0406). Apache 2.0; see [LICENSE](LICENSE).
