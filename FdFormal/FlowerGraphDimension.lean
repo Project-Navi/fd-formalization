@@ -18,6 +18,11 @@ arithmetic limit `flowerDimension` with the hub distance `flowerGraph_dist_hub0_
 The limit is the box-counting dimension of the flowers in the physics literature;
 `flowerGraph_hasBoxDimension` in `FlowerBoxDimension.lean` proves that identification.
 
+## Main definitions
+
+None: the graphs and `HasLogRatioDimension` are defined in `FlowerConstruction` and
+`FlowerLogRatio`.
+
 ## Main statements
 
 - `flowerGraph_hasLogRatioDimension` — `HasLogRatioDimension` for the flower graphs

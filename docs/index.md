@@ -26,7 +26,7 @@ For \(1 < u \leq v\):
 
 Rozenfeld et al. (2007) identify this limit with the box-counting dimension \(d_B\); F4 proves that identification for the explicit graphs. [navi-fractal](https://github.com/Project-Navi/navi-fractal) uses the formula as calibration ground truth.
 
-The library builds with no `sorry`, and the 52 declarations checked in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
+The library builds with no `sorry`, and the 75 declarations checked in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ## Documentation
 

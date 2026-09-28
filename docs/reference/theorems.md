@@ -1,6 +1,6 @@
 # Theorems
 
-Definitions and theorems by file. The tables omit hypotheses (mostly \(1 < u\) and \(u \leq v\)); see the source. The library builds with no `sorry`, and the 52 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
+Definitions and theorems by file. The tables omit hypotheses (mostly \(1 < u\) and \(u \leq v\)); see the source. The library builds with no `sorry`, and the 75 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ---
 

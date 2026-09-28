@@ -46,7 +46,7 @@ A volume argument would fail here: hubs have degree \(2^g\), so a ball around a 
 
 ## Axioms
 
-The 52 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
+The 75 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ---
 

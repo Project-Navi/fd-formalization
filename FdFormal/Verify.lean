@@ -20,6 +20,24 @@ Run `lake env lean FdFormal/Verify.lean` to see the output.
 
 All declarations should depend only on `[propext, Classical.choice, Quot.sound]`.
 
+## Main definitions
+
+None.
+
+## Main statements
+
+None: every line is a `#print axioms` record, one per headline result or cited supporting
+declaration. CI counts the records and checks each against the allowlist.
+
+## Implementation notes
+
+This file is imported by the root, so `lake build` compiles it; CI also runs it with
+warnings as errors.
+
+## References
+
+None.
+
 ## Tags
 
 verification, axioms, soundness
@@ -45,6 +63,9 @@ verification, axioms, soundness
 #print axioms flowerHubDist_cast_eq_pow
 
 -- Hub vertices (FlowerGraph)
+#print axioms hub0
+#print axioms hub1
+#print axioms two_le_flowerVertCount
 #print axioms hub0_ne_hub1
 
 -- Log identities and squeeze bounds (FlowerLog)
@@ -57,6 +78,17 @@ verification, axioms, soundness
 #print axioms HasLogRatioDimension
 
 -- F2 bridge: SimpleGraph construction + distance (FlowerConstruction)
+#print axioms GadgetPos
+#print axioms LocalEdge
+#print axioms FlowerEdge
+#print axioms FlowerVert
+#print axioms flowerAdj'
+#print axioms flowerGraph'
+#print axioms flowerGraph'_adj_iff
+#print axioms gadgetInternal_card
+#print axioms flowerVert_card
+#print axioms flowerVertEquiv
+#print axioms flowerGraph
 #print axioms flowerGraph'_connected
 #print axioms flowerGraph'_dist_hubs
 #print axioms flowerGraph_dist_hubs
@@ -75,8 +107,12 @@ verification, axioms, soundness
 -- Path graph distances (PathGraphDist)
 #print axioms SimpleGraph.pathGraph_edist
 #print axioms SimpleGraph.pathGraph_dist
+#print axioms SimpleGraph.pathGraph_edist_zero_last
+#print axioms SimpleGraph.pathGraph_dist_zero_last
 
 -- Box covering (BoxCounting)
+#print axioms SimpleGraph.IsBox
+#print axioms SimpleGraph.boxCount
 #print axioms SimpleGraph.boxCount_le_of_cover
 #print axioms SimpleGraph.le_boxCount_of_separated
 #print axioms SimpleGraph.boxCount_anti
@@ -91,6 +127,11 @@ verification, axioms, soundness
 #print axioms Real.tendsto_log_count_div_log_scale
 
 -- Cell decomposition (FlowerCells)
+#print axioms FlowerEdge.graft
+#print axioms FlowerEdge.trunc
+#print axioms FlowerEdge.suffix
+#print axioms cellEmbed
+#print axioms cellHom
 #print axioms cellEmbed_injective
 #print axioms exists_cellEmbed_eq
 #print axioms cellEmbed_eq_of_ne

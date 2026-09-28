@@ -23,10 +23,20 @@ box-counting fractal dimension `d_B`. This file proves the log-ratio convergence
 The proof uses Route B (squeeze): two-sided bounds on `N_g` in terms
 of `(u+v)^g`, combined with `L_g = u^g`, yield the log-ratio limit.
 
+## Main definitions
+
+None: the counts and hub distance are defined in `FlowerCounts` and `FlowerDiameter`.
+
 ## Main statements
 
 - `flowerDimension` — `Filter.Tendsto (fun g ↦ log N_g / log L_g)
     atTop (nhds (log w / log u))`
+
+## Implementation notes
+
+The ratio is split as `log w / log u` plus a residual `(log N_g - g * log w) / (g * log u)`;
+the residual bounds from `FlowerLog` squeeze it to `0` with `Filter.Tendsto.squeeze'`,
+applied eventually in `g` (for `g ≥ 1`, where `log L_g > 0`).
 
 ## References
 

@@ -58,6 +58,10 @@ avoiding division/modular arithmetic on `Fin`. The lower bound on hub
 distance uses the rank potential `FlowerVert.rank`, which changes by at
 most 1 along an edge; the projection lemmas are not needed for it.
 
+## References
+
+- [Rozenfeld2007] §2, the recursive construction of the (u,v)-flowers.
+
 ## Tags
 
 flower graph, construction

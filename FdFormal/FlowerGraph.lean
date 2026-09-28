@@ -26,6 +26,12 @@ counting formulas (`FlowerCounts`) and the hub-distance recurrence
 - `two_le_flowerVertCount` — vertex count is at least 2
 - `hub0_ne_hub1` — the two hubs are distinct
 
+## Implementation notes
+
+The hubs are the indices `0` and `1` of `Fin (flowerVertCount u v g)`, which exist because
+`2 ≤ flowerVertCount u v g`. `flowerVertEquiv` in `FlowerConstruction` sends the
+construction's hubs to exactly these indices.
+
 ## References
 
 - [Rozenfeld2007] §2, construction and hub structure.

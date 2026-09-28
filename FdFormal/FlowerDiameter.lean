@@ -31,6 +31,11 @@ explicit graph's hub distance is `flowerHubDist`.
 - `flowerHubDist_cast_eq_pow` — `↑(L_g) = (↑u)^g` in `ℝ`
 - `flowerHubDistReal_pos` — positivity in `ℝ`
 
+## Implementation notes
+
+`flowerHubDist` is the recurrence `L_{g+1} = u * L_g`, so every statement here is arithmetic.
+The graph-theoretic counterpart is `flowerGraph'_dist_hubs` in `FlowerConstruction`.
+
 ## References
 
 - [Rozenfeld2007] §2, diameter analysis.

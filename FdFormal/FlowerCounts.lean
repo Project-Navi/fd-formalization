@@ -42,6 +42,12 @@ depend on the graph representation.
 - `flowerVertCount_strict_mono` — `N_g < N_{g+1}`
 - `flowerVertCount_cast_eq` — recurrence in `ℝ`
 
+## Implementation notes
+
+The counts are recurrences on `ℕ`, not cardinalities of a graph. `FlowerConstruction` proves
+that the explicit graph has `flowerVertCount` vertices (`flowerVert_card`). The real-valued
+bounds used by the squeeze go through `flowerVertCount_cast_eq`.
+
 ## References
 
 - [Rozenfeld2007] §2, construction and counting formulas.
