@@ -116,6 +116,7 @@ verification, axioms, soundness
 #print axioms SimpleGraph.boxCount_le_of_cover
 #print axioms SimpleGraph.le_boxCount_of_separated
 #print axioms SimpleGraph.boxCount_anti
+#print axioms SimpleGraph.boxCount_one
 #print axioms SimpleGraph.boxCount_pos
 #print axioms SimpleGraph.boxCount_le_card
 #print axioms SimpleGraph.Iso.boxCount_eq
@@ -146,6 +147,7 @@ verification, axioms, soundness
 -- Box-counting dimension of the flower graphs (FlowerBoxDimension)
 #print axioms HasBoxDimension
 #print axioms HasBoxDimension.unique
+#print axioms HasBoxDimension.tendsto_log_card_div_log_diam
 #print axioms flower_boxCount_ge
 #print axioms flower_boxCount_le
 #print axioms flowerGraph'_diam_bounds

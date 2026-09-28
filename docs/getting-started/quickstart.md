@@ -16,7 +16,7 @@ lake env lean -DwarningAsError=true FdFormal/Verify.lean   # axiom dashboard
 lake lint                                                 # Mathlib linters
 ```
 
-`Verify.lean` prints the axioms of 76 key declarations; each should use only `propext`, `Classical.choice` and `Quot.sound`. CI checks this.
+`Verify.lean` prints the axioms of 78 key declarations; each should use only `propext`, `Classical.choice` and `Quot.sound`. CI checks this.
 
 ## Files
 

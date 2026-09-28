@@ -1,6 +1,6 @@
 # Theorems
 
-Definitions and theorems by file. The tables omit hypotheses (mostly \(1 < u\) and \(u \leq v\)); see the source. The library builds with no `sorry`, and the 76 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
+Definitions and theorems by file. The tables omit hypotheses (mostly \(1 < u\) and \(u \leq v\)); see the source. The library builds with no `sorry`, and the 78 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ---
 
@@ -63,7 +63,7 @@ def HasBoxDimension {V : ℕ → Type*} (G : (g : ℕ) → SimpleGraph (V g)) (d
       atTop (𝓝 d)
 ```
 
-`boxCount ℓ` is the fewest vertex sets of extended diameter \(< \ell\) that cover the graph (Song, Havlin & Makse 2005). The diameters must diverge, and the limit is required along every scale sequence with \(\operatorname{diam} G_g / \ell_g \to \infty\), so it does not depend on a choice of scales, and \(d\) is unique (`HasBoxDimension.unique`). The graphs must be finite, so `boxCount` never takes its junk value. F4 proves it for the flower graphs; see [Proof Strategy](../explanation/proof-strategy.md#f4-box-counting).
+`boxCount ℓ` is the fewest vertex sets of extended diameter \(< \ell\) that cover the graph (Song, Havlin & Makse 2005). The diameters must diverge, and the limit is required along every scale sequence with \(\operatorname{diam} G_g / \ell_g \to \infty\), so it does not depend on a choice of scales, and \(d\) is unique (`HasBoxDimension.unique`). At \(\ell_g = 1\) it contains the mass-scaling law \(\log \lvert V_g \rvert / \log \operatorname{diam} G_g \to d\) (`HasBoxDimension.tendsto_log_card_div_log_diam`). The graphs must be finite, so `boxCount` never takes its junk value. F4 proves it for the flower graphs; see [Proof Strategy](../explanation/proof-strategy.md#f4-box-counting).
 
 ---
 
@@ -146,6 +146,7 @@ For any simple graph \(G\):
 | `boxCount_le_of_cover` | any cover by \(n\) boxes gives \(N_B \leq n\) |
 | `le_boxCount_of_separated` | \(n\) points pairwise at distance \(\geq \ell\) give \(n \leq N_B\) |
 | `boxCount_anti`, `boxCount_pos`, `boxCount_le_card` | antitone in \(\ell\); \(0 < N_B \leq \lvert V \rvert\) |
+| `boxCount_one` | at \(\ell = 1\) every box is a single vertex, so \(N_B = \lvert V \rvert\) |
 | `Iso.boxCount_eq` | isomorphic graphs have equal box counts |
 | `Hom.dist_le` | graph homomorphisms do not increase distance |
 | `le_add_dist_of_lipschitz`, `tent_lipschitz` | a 1-Lipschitz potential bounds distance; folding it into a tent keeps it 1-Lipschitz |

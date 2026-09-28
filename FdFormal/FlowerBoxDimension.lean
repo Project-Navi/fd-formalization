@@ -25,6 +25,7 @@ against their diameter along every scale sequence `ℓ_g` with `diam G_g / ℓ_g
 - `flower_boxCount_ge` — for `0 < j`, the `(u + v) ^ k` cell centers are `u ^ j / 2`-separated
 - `flower_boxCount_le` — the `(u + v) ^ k` cells are boxes of size `(2v + 1) u ^ j + 1`
 - `HasBoxDimension.unique` — a family has at most one box-counting dimension
+- `HasBoxDimension.tendsto_log_card_div_log_diam` — it contains the mass-scaling law
 - `flowerGraph_hasBoxDimension` — the flowers have box-counting dimension
   `log (u + v) / log u`
 
@@ -76,6 +77,15 @@ theorem HasBoxDimension.unique {V : ℕ → Type*} {G : (g : ℕ) → SimpleGrap
   have hs : Tendsto (fun g ↦ ((G g).diam : ℝ) / (((fun _ ↦ 1) : ℕ → ℕ) g : ℝ)) atTop atTop := by
     simpa using h.2.1
   exact tendsto_nhds_unique (h.2.2 _ (fun _ ↦ Nat.one_pos) hs) (h'.2.2 _ (fun _ ↦ Nat.one_pos) hs)
+
+/-- Box-counting dimension contains the mass-scaling law: at scale `ℓ_g = 1` every box is a
+single vertex, so `log |V_g| / log (diam G_g) → d`. -/
+theorem HasBoxDimension.tendsto_log_card_div_log_diam {V : ℕ → Type*} [∀ g, Fintype (V g)]
+    {G : (g : ℕ) → SimpleGraph (V g)} {d : ℝ} (h : HasBoxDimension G d) :
+    Tendsto (fun g ↦ log (Fintype.card (V g) : ℝ) / log ((G g).diam : ℝ)) atTop (𝓝 d) := by
+  have hs : Tendsto (fun g ↦ ((G g).diam : ℝ) / (((fun _ ↦ 1) : ℕ → ℕ) g : ℝ)) atTop atTop := by
+    simpa using h.2.1
+  simpa [SimpleGraph.boxCount_one] using h.2.2 _ (fun _ ↦ Nat.one_pos) hs
 
 variable {u v : ℕ}
 

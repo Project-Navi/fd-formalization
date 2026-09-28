@@ -1,5 +1,7 @@
 # (u,v)-flower dimensions in Lean 4
 
+**The flowers' box-counting exponent `log (u + v) / log u` holds for minimum box covers of the finite graphs themselves, uniformly across every resolving scale: from single vertices, where it is the mass-scaling law `log |V_g| / log diam G_g → d` (`HasBoxDimension.tendsto_log_card_div_log_diam`), up to any scale that grows more slowly than the diameter.**
+
 A complete Lean 4 and Mathlib (v4.34.1) proof that the (u,v)-flowers of Rozenfeld, Havlin and ben-Avraham have fractal dimension `log (u + v) / log u` for `1 < u ≤ v`: as the limit of their counting recurrences, as the log-ratio dimension of the explicit graphs, and as their box-counting dimension. There is no `sorry` and no custom axiom. Documentation: [project-navi.github.io/fd-formalization](https://project-navi.github.io/fd-formalization/).
 
 - `flowerDimension` (`FdFormal/FlowerDimension.lean`): for the vertex count `N_g` and hub distance `L_g`, both defined by recurrences, `log N_g / log L_g` tends to `log (u + v) / log u`.
@@ -21,7 +23,7 @@ lake build --wfail
 lake env lean -DwarningAsError=true FdFormal/Verify.lean
 ```
 
-`FdFormal/Verify.lean` prints the axioms of 76 declarations, including all four results; CI requires each to use only `propext`, `Classical.choice` and `Quot.sound`.
+`FdFormal/Verify.lean` prints the axioms of 78 declarations, including all four results; CI requires each to use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ## Credit and license
 
