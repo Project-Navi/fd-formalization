@@ -13,4 +13,9 @@ import FdFormal.FlowerDimension
 import FdFormal.FlowerConstruction
 import FdFormal.FlowerGraphDimension
 import FdFormal.PathGraphDist
+import FdFormal.BoxCounting
+import FdFormal.BoxScaling
+import FdFormal.FlowerCells
+import FdFormal.FlowerRadius
+import FdFormal.FlowerBoxDimension
 import FdFormal.Verify

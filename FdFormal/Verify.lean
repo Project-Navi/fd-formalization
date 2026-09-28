@@ -11,6 +11,7 @@ import FdFormal.FlowerDimension
 import FdFormal.FlowerConstruction
 import FdFormal.FlowerGraphDimension
 import FdFormal.PathGraphDist
+import FdFormal.FlowerBoxDimension
 
 set_option relaxedAutoImplicit false
 set_option autoImplicit false
@@ -84,3 +85,30 @@ verification, axioms, soundness
 -- Path graph distances (PathGraphDist)
 #print axioms SimpleGraph.pathGraph_edist
 #print axioms SimpleGraph.pathGraph_dist
+
+-- Box covering (BoxCounting)
+#print axioms SimpleGraph.boxCount_le_of_cover
+#print axioms SimpleGraph.le_boxCount_of_separated
+#print axioms SimpleGraph.boxCount_anti
+#print axioms SimpleGraph.Iso.boxCount_eq
+#print axioms SimpleGraph.Hom.dist_le
+
+-- Scaling lemma (BoxScaling)
+#print axioms tendsto_log_count_div_log_scale
+
+-- Cell decomposition (FlowerCells)
+#print axioms cellEmbed_injective
+#print axioms exists_cellEmbed_eq
+#print axioms cellEmbed_eq_of_ne
+#print axioms cellPotential_lipschitz
+
+-- Rank and radius (FlowerRadius)
+#print axioms exists_rank_eq
+#print axioms flowerGraph'_dist_le
+
+-- Box-counting dimension of the flower graphs (FlowerBoxDimension)
+#print axioms HasBoxDimension
+#print axioms flower_boxCount_ge
+#print axioms flower_boxCount_le
+#print axioms flowerGraph'_diam_bounds
+#print axioms flowerGraph_hasBoxDimension
