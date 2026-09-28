@@ -11,7 +11,7 @@ Not covered: `u = 1`, the transfractal case. There the hub distance is `1 ^ g = 
 
 ## Prior work
 
-To our knowledge, this is the first machine-checked proof, in Lean 4 with Mathlib, that the Rozenfeld–Havlin–ben-Avraham (u,v)-flowers have box-counting dimension `log (u + v) / log u`. The value was derived heuristically by Rozenfeld et al. (2007) and follows from Li's theorem on iterated graph systems (*Proc. R. Soc. A*, 2024); our formal statement holds along every scale sequence with `diam / ℓ → ∞`.
+To our knowledge, this is the first formal proof, in any proof assistant, of the box-counting dimension of a graph family: the Rozenfeld–Havlin–ben-Avraham (u,v)-flowers have box-counting dimension `log (u + v) / log u`, with Song–Havlin–Makse box covering. The value was derived heuristically by Rozenfeld et al. (2007) and follows from Li's theorem on iterated graph systems (*Proc. R. Soc. A*, 2024); our formal statement holds along every scale sequence with `diam / ℓ → ∞`.
 
 ## Verify
 
