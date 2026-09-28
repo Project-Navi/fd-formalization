@@ -16,14 +16,14 @@ lake env lean -DwarningAsError=true FdFormal/Verify.lean   # axiom dashboard
 lake lint                                                 # Mathlib linters
 ```
 
-`Verify.lean` prints the axioms of 75 key declarations; each should use only `propext`, `Classical.choice` and `Quot.sound`. CI checks this.
+`Verify.lean` prints the axioms of 76 key declarations; each should use only `propext`, `Classical.choice` and `Quot.sound`. CI checks this.
 
 ## Files
 
 | Module | Contents |
 |---|---|
 | `FlowerCounts` | edge and vertex counts, bounds, monotonicity |
-| `FlowerDiameter` | hub distance \(L_g = u^g\) |
+| `FlowerHubDist` | hub distance \(L_g = u^g\) |
 | `FlowerGraph` | `Fin`-indexed hub vertices |
 | `FlowerLog` | log identities, squeeze bounds |
 | `FlowerDimension` | F1: log-ratio limit |

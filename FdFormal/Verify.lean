@@ -50,11 +50,11 @@ verification, axioms, soundness
 #print axioms flowerVertCount_lower
 #print axioms flowerVertCount_upper
 
--- Hub distance (FlowerDiameter)
+-- Hub distance (FlowerHubDist)
 #print axioms flowerHubDist_eq_pow
 #print axioms flowerHubDist_pos
 
--- Monotonicity (FlowerCounts / FlowerDiameter)
+-- Monotonicity (FlowerCounts / FlowerHubDist)
 #print axioms flowerEdgeCount_pos
 #print axioms flowerEdgeCount_strict_mono
 #print axioms flowerVertCount_strict_mono
@@ -145,6 +145,7 @@ verification, axioms, soundness
 
 -- Box-counting dimension of the flower graphs (FlowerBoxDimension)
 #print axioms HasBoxDimension
+#print axioms HasBoxDimension.unique
 #print axioms flower_boxCount_ge
 #print axioms flower_boxCount_le
 #print axioms flowerGraph'_diam_bounds

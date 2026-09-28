@@ -13,7 +13,7 @@ family from Rozenfeld, Havlin & ben-Avraham (NJP 2007).
 
 The log-ratio convergence theorem (in `FlowerDimension`) needs only the
 counting formulas (`FlowerCounts`) and the hub-distance recurrence
-(`FlowerDiameter`). The explicit `SimpleGraph` is built in
+(`FlowerHubDist`). The explicit `SimpleGraph` is built in
 `FlowerConstruction`, whose `flowerGraph_dist_hub0_hub1` connects
 `flowerHubDist` to `SimpleGraph.dist`; its hubs are the indices defined here.
 

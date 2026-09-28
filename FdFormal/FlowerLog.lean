@@ -4,15 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nelson Spence
 -/
 import FdFormal.FlowerCounts
-import FdFormal.FlowerDiameter
+import FdFormal.FlowerHubDist
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 /-!
 # Flower Log Lemmas
 
 Reusable log identities and squeeze-sandwich bounds for the (u,v)-flower
-model. These extract calculations that were previously inlined in
-`FlowerDimension.lean` into standalone lemmas.
+model, stated as standalone lemmas. `FlowerDimension` proves its limit with its
+own bounds and does not import this file.
 
 ## Main definitions
 

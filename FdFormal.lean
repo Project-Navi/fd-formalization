@@ -5,7 +5,7 @@ Authors: Nelson Spence
 -/
 import FdFormal.FlowerGraph
 import FdFormal.FlowerCounts
-import FdFormal.FlowerDiameter
+import FdFormal.FlowerHubDist
 import FdFormal.FlowerLog
 import FdFormal.FlowerLogRatio
 import FdFormal.FlowerDimension

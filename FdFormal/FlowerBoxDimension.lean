@@ -24,6 +24,7 @@ against their diameter along every scale sequence `ℓ_g` with `diam G_g / ℓ_g
 
 - `flower_boxCount_ge` — for `0 < j`, the `(u + v) ^ k` cell centers are `u ^ j / 2`-separated
 - `flower_boxCount_le` — the `(u + v) ^ k` cells are boxes of size `(2v + 1) u ^ j + 1`
+- `HasBoxDimension.unique` — a family has at most one box-counting dimension
 - `flowerGraph_hasBoxDimension` — the flowers have box-counting dimension
   `log (u + v) / log u`
 
@@ -59,13 +60,22 @@ open Filter Real Topology
 /-- A graph family `G g` has box-counting dimension `d` if its diameters diverge and, along
 every scale sequence `ℓ_g ≥ 1` with `diam (G g) / ℓ_g → ∞`,
 `log N_B(G g, ℓ_g) / log (diam (G g) / ℓ_g) → d`. Divergence makes `ℓ_g = 1` admissible,
-so `d` is unique. -/
+so `d` is unique (`HasBoxDimension.unique`). The graphs must be finite, so `boxCount` never
+takes its junk value. -/
 def HasBoxDimension {V : ℕ → Type*} (G : (g : ℕ) → SimpleGraph (V g)) (d : ℝ) : Prop :=
-  Tendsto (fun g ↦ ((G g).diam : ℝ)) atTop atTop ∧
+  (∀ g, Finite (V g)) ∧ Tendsto (fun g ↦ ((G g).diam : ℝ)) atTop atTop ∧
   ∀ ℓ : ℕ → ℕ, (∀ g, 0 < ℓ g) →
     Tendsto (fun g ↦ ((G g).diam : ℝ) / ℓ g) atTop atTop →
     Tendsto (fun g ↦ log ((G g).boxCount (ℓ g) : ℝ) / log (((G g).diam : ℝ) / ℓ g))
       atTop (𝓝 d)
+
+/-- The box-counting dimension of a family is unique: the scales `ℓ_g = 1` are admissible
+because the diameters diverge. -/
+theorem HasBoxDimension.unique {V : ℕ → Type*} {G : (g : ℕ) → SimpleGraph (V g)} {d d' : ℝ}
+    (h : HasBoxDimension G d) (h' : HasBoxDimension G d') : d = d' := by
+  have hs : Tendsto (fun g ↦ ((G g).diam : ℝ) / (((fun _ ↦ 1) : ℕ → ℕ) g : ℝ)) atTop atTop := by
+    simpa using h.2.1
+  exact tendsto_nhds_unique (h.2.2 _ (fun _ ↦ Nat.one_pos) hs) (h'.2.2 _ (fun _ ↦ Nat.one_pos) hs)
 
 variable {u v : ℕ}
 
@@ -199,7 +209,7 @@ theorem flowerGraph_hasBoxDimension (hu : 1 < u) (huv : u ≤ v) :
     have : Nonempty (FlowerVert u v g) := ⟨.hub0 u v g⟩
     have : Nonempty (Fin (flowerVertCount u v g)) := ⟨φ (.hub0 u v g)⟩
     exact le_antisymm (iso_diam_le φ hc) (iso_diam_le φ.symm (φ.connected_iff.mp hc))
-  refine ⟨?_, fun ℓ hℓ hscale ↦ ?_⟩
+  refine ⟨fun g ↦ inferInstance, ?_, fun ℓ hℓ hscale ↦ ?_⟩
   · -- the diameters diverge, since `u ^ g ≤ diam`
     simp only [hdiam]
     refine tendsto_atTop_mono (fun g ↦ ?_) (tendsto_pow_atTop_atTop_of_one_lt

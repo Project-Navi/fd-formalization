@@ -17,7 +17,7 @@ lake build --wfail
 lake env lean -DwarningAsError=true FdFormal/Verify.lean
 ```
 
-`FdFormal/Verify.lean` prints the axioms of 75 declarations, including all four results; CI requires each to use only `propext`, `Classical.choice` and `Quot.sound`.
+`FdFormal/Verify.lean` prints the axioms of 76 declarations, including all four results; CI requires each to use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ## Credit and license
 

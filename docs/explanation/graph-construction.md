@@ -30,7 +30,7 @@ def FlowerEdge (u v : ℕ) : ℕ → Type
 - **Upper bound.** `flowerGraph'_walk_hubs`: by induction on \(g\), `lift_walk` replaces each edge of a hub-to-hub walk with a short path of length \(u\), giving a walk of length \(u^g\).
 - **Lower bound.** `FlowerVert.rank` is 0 at `hub0`, \(u^g\) at `hub1`, and grows by at most 1 along an edge (`rank_adj_le`), so every hub-to-hub walk has length at least \(u^g\) (`walk_length_ge_rank`, `flowerGraph'_dist_ge`).
 
-Together they give `flowerGraph'_dist_hubs`. The projection lemmas `FlowerVert.project` and `project_adj_or_eq`, from an earlier approach, remain in the file but are not used.
+Together they give `flowerGraph'_dist_hubs`.
 
 ---
 

@@ -21,7 +21,6 @@ explicit graph's hub distance is `flowerHubDist`.
 ## Main definitions
 
 - `flowerHubDist` — hub-to-hub distance at generation `g`
-- `flowerHubDistReal` — hub distance cast to `ℝ`
 
 ## Main statements
 
@@ -29,7 +28,6 @@ explicit graph's hub distance is `flowerHubDist`.
 - `flowerHubDist_pos` — `0 < flowerHubDist u v g` when `1 < u`
 - `flowerHubDist_strict_mono` — `L_g < L_{g+1}`
 - `flowerHubDist_cast_eq_pow` — `↑(L_g) = (↑u)^g` in `ℝ`
-- `flowerHubDistReal_pos` — positivity in `ℝ`
 
 ## Implementation notes
 
@@ -89,14 +87,3 @@ theorem flowerHubDist_strict_mono (u v g : ℕ) (hu : 1 < u) :
 theorem flowerHubDist_cast_eq_pow (u v g : ℕ) :
     (↑(flowerHubDist u v g) : ℝ) = (↑u : ℝ) ^ g := by
   simp [flowerHubDist_eq_pow, Nat.cast_pow]
-
-/-! ### Real-valued wrapper -/
-
-/-- Hub distance cast to `ℝ`. -/
-noncomputable def flowerHubDistReal (u v g : ℕ) : ℝ :=
-  (flowerHubDist u v g : ℝ)
-
-/-- The real-valued hub distance is positive when `1 < u`. -/
-theorem flowerHubDistReal_pos (u v g : ℕ) (hu : 1 < u) :
-    0 < flowerHubDistReal u v g :=
-  Nat.cast_pos.mpr (flowerHubDist_pos u v g hu)
