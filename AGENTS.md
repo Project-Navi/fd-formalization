@@ -47,12 +47,17 @@ lake env lean -DwarningAsError=true <Pkg>/Verify.lean   # axiom dashboard
 - Independent kernel replay: `lake env leanchecker --fresh <Pkg>` re-checks every
   declaration in a fresh kernel, outside the elaborator that produced it.
 - Test the checkers themselves. An axiom or `sorry` gate that silently passes is worse than
-  none (a pipe without `pipefail` once hid Lean failures here). Keep a small negative
-  fixture that must fail the gate, and a snapshot of expected axiom output that the parser
-  must accept.
-- CI fails if `lake-manifest.json` changes without an intentional dependency bump.
+  none (a pipe without `pipefail` once hid Lean failures here). When you add or change a
+  gate, also add a small negative fixture that must fail it and a snapshot of expected
+  axiom output that its parser must accept. This repo's CI has neither yet: after changing
+  the axiom check, test it by hand against a file that uses `sorry`.
+- Change `lake-manifest.json` only in an intentional dependency bump. No CI guard enforces
+  this here; check the diff yourself.
 - If a repo has a docs site, `uv run zensical build` must succeed; CI also checks the
   built site's local links.
+- This repo's CI runs: the placeholder audit, `lake build --wfail` of every module,
+  `lake lint`, the axiom check, and the docs build and link check. Everything else in
+  this file is a convention to follow, not an automated gate.
 - If a repo has a `Makefile`, use its targets (`build`, `verify`, `audit`, `lint`) as
   the canonical commands.
 
@@ -104,9 +109,12 @@ Every `.lean` file, in order:
   Adoption is repo-wide and happens in one change; don't mix header styles in one repo.
 - Keep general-purpose results apart from project-specific ones. General lemmas live in
   their own directory under Mathlib-style namespaces, depend only on Mathlib and each
-  other, and never import the project-specific layer. CI checks the import direction.
+  other, and never import the project-specific layer. Once a repo has both layers, add a
+  CI check on the import direction. This repo keeps one flat `FdFormal/` directory;
+  general-purpose declarations still go in Mathlib-style namespaces.
 - Unfinished or exploratory work lives in an `Experimental/` directory. Only
-  `Experimental/` and `Verify/` may import it; CI rejects any other import.
+  `Experimental/` and `Verify/` may import it; add a CI check for that when the directory
+  first appears. This repo has none.
 - Every `def` has a `/-- ... -/` docstring (the `docBlame` linter checks this).
 - Cite references as `[AuthorYear]`.
 
