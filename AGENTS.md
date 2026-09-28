@@ -272,10 +272,12 @@ Every `.lean` file, in order:
 **Measure and dimension**
 - Area formula: `MeasureTheory.addHaar_image_le_lintegral_abs_det_fderiv` in
   `Mathlib.MeasureTheory.Function.Jacobian`.
-- `dimH`, `ContDiffOn.dimH_image_le` and `hausdorffMeasure_of_dimH_lt` are in
+- `dimH`, `DifferentiableOn.dimH_image_le` (which replaced the deprecated
+  `ContDiffOn.dimH_image_le`) and `hausdorffMeasure_of_dimH_lt` are in
   `Mathlib.Topology.MetricSpace.HausdorffDimension`.
-- `absolutelyContinuous_isAddHaarMeasure` (in `Mathlib.MeasureTheory.Measure.Haar.Unique` at
-  v4.28.0) is gone by v4.34.1; find its successor before relying on it.
+- `absolutelyContinuous_isAddHaarMeasure` is in `Mathlib.MeasureTheory.Measure.Haar.Unique`.
+  `@[to_additive]` generates it, so it never appears as text: check a name with `#check`,
+  not a text search.
 - Bounded sets: `Bornology.IsVonNBounded ℝ S`.
 
 ## Assumed results
