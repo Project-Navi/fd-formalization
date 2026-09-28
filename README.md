@@ -2,7 +2,7 @@
 
 **The flowers' box-counting exponent `log (u + v) / log u` holds for minimum box covers of the finite graphs themselves, uniformly across every resolving scale: from single vertices, where it is the mass-scaling law `log |V_g| / log diam G_g → d` (`HasBoxDimension.tendsto_log_card_div_log_diam`), up to any scale that grows more slowly than the diameter.**
 
-A complete Lean 4 and Mathlib (v4.34.1) proof that the (u,v)-flowers of Rozenfeld, Havlin and ben-Avraham have fractal dimension `log (u + v) / log u` for `1 < u ≤ v`: as the limit of their counting recurrences, as the log-ratio dimension of the explicit graphs, and as their box-counting dimension. There is no `sorry` and no custom axiom. Documentation: [project-navi.github.io/fd-formalization](https://project-navi.github.io/fd-formalization/).
+A complete Lean 4 and Mathlib (v4.34.1) proof that the (u,v)-flowers of Rozenfeld, Havlin and ben-Avraham have fractal dimension `log (u + v) / log u` for `1 < u ≤ v`: as the limit of their counting recurrences, as the log-ratio dimension of the explicit graphs, and as their box-counting dimension. There is no `sorry` and no custom axiom. Documentation: [docs.projectnavi.ai/fd-formalization](https://docs.projectnavi.ai/fd-formalization/).
 
 - `flowerDimension` (`FdFormal/FlowerDimension.lean`): for the vertex count `N_g` and hub distance `L_g`, both defined by recurrences, `log N_g / log L_g` tends to `log (u + v) / log u`.
 - `flowerGraph_dist_hub0_hub1` (`FdFormal/FlowerConstruction.lean`): in the constructed graph `flowerGraph u v g hu huv` on `Fin N_g`, the distance between `hub0` and `hub1` (indices 0 and 1) is `u ^ g`.
