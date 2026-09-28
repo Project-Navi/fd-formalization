@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nelson Spence
 -/
 import FdFormal.FlowerCounts
-import FdFormal.FlowerDiameter
+import FdFormal.FlowerHubDist
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Order.Filter.AtTopBot.Field
 import Mathlib.Topology.Algebra.Order.Field
@@ -25,7 +25,7 @@ of `(u+v)^g`, combined with `L_g = u^g`, yield the log-ratio limit.
 
 ## Main definitions
 
-None: the counts and hub distance are defined in `FlowerCounts` and `FlowerDiameter`.
+None: the counts and hub distance are defined in `FlowerCounts` and `FlowerHubDist`.
 
 ## Main statements
 
@@ -35,8 +35,10 @@ None: the counts and hub distance are defined in `FlowerCounts` and `FlowerDiame
 ## Implementation notes
 
 The ratio is split as `log w / log u` plus a residual `(log N_g - g * log w) / (g * log u)`;
-the residual bounds from `FlowerLog` squeeze it to `0` with `Filter.Tendsto.squeeze'`,
-applied eventually in `g` (for `g ≥ 1`, where `log L_g > 0`).
+the bounds `flowerVertCount_ge_real` and `flowerVertCount_le_real` proved here squeeze it to
+`0` with `Filter.Tendsto.squeeze'`, applied eventually in `g` (for `g ≥ 1`, where
+`log L_g > 0`). `FlowerLog` states the same residual bounds as standalone lemmas; this proof
+does not import it.
 
 ## References
 

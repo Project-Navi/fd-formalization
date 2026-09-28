@@ -24,6 +24,7 @@ diameter `< ℓ` needed to cover every vertex.
 - `SimpleGraph.boxCount_le_of_cover` — any cover bounds `boxCount` from above
 - `SimpleGraph.le_boxCount_of_separated` — `ℓ`-separated points bound it from below
 - `SimpleGraph.boxCount_anti` — `boxCount` is antitone in `ℓ`
+- `SimpleGraph.boxCount_one` — at scale `1` the box count is the vertex count
 - `SimpleGraph.Iso.boxCount_eq` — `boxCount` is invariant under isomorphism
 - `SimpleGraph.le_add_dist_of_lipschitz` — a 1-Lipschitz potential bounds distance
 
@@ -113,6 +114,13 @@ theorem le_boxCount_of_separated [Finite V] {ℓ n : ℕ} (hℓ : 0 < ℓ) (c : 
     have h1 := hB (g i) (hg i) (hij ▸ hg j)
     exact absurd (hc i j hne) (not_le.mpr h1)
   simpa using Fintype.card_le_of_injective g hinj
+
+/-- At scale `1` every box is a single vertex, so the box count is the vertex count. -/
+theorem boxCount_one [Fintype V] : G.boxCount 1 = Fintype.card V := by
+  refine le_antisymm (boxCount_le_card Nat.one_pos) ?_
+  refine le_boxCount_of_separated Nat.one_pos (Fintype.equivFin V).symm fun i j hij ↦ ?_
+  rw [Nat.cast_one, Order.one_le_iff_ne_zero, Ne, SimpleGraph.edist_eq_zero_iff]
+  exact (Fintype.equivFin V).symm.injective.ne hij
 
 /-- `boxCount` is invariant under graph isomorphism. -/
 theorem Iso.boxCount_eq {G' : SimpleGraph W} (φ : G ≃g G') (ℓ : ℕ) :

@@ -28,7 +28,6 @@ depend on the graph representation.
 
 - `flowerEdgeCount` — number of edges at generation `g`
 - `flowerVertCount` — number of vertices at generation `g`
-- `flowerVertCountReal` — vertex count cast to `ℝ`
 
 ## Main statements
 
@@ -163,14 +162,3 @@ theorem flowerVertCount_cast_eq (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
   simp only [Nat.cast_mul, Nat.cast_pow, Nat.cast_add] at this
   rw [Nat.cast_sub (by omega), Nat.cast_sub (by omega)] at this
   exact_mod_cast this
-
-/-! ### Real-valued wrappers -/
-
-/-- Vertex count cast to `ℝ`. -/
-noncomputable def flowerVertCountReal (u v : ℕ) (g : ℕ) : ℝ :=
-  (flowerVertCount u v g : ℝ)
-
-/-- The real-valued vertex count is positive. -/
-theorem flowerVertCountReal_pos (u v g : ℕ) :
-    0 < flowerVertCountReal u v g :=
-  Nat.cast_pos.mpr (flowerVertCount_pos u v g)

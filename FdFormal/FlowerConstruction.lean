@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nelson Spence
 -/
 import FdFormal.FlowerCounts
-import FdFormal.FlowerDiameter
+import FdFormal.FlowerHubDist
 import FdFormal.FlowerGraph
 import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Combinatorics.SimpleGraph.Hasse
@@ -27,7 +27,6 @@ graph on `Fin` has hub distance `u^g`.
 - `FlowerVert.rank` — potential used for the lower bound on hub distance
 - `flowerVertEquiv` — equivalence to `Fin`, sending the hubs to `0` and `1`
 - `flowerGraph` — the (u,v)-flower as a `SimpleGraph` on `Fin`
-- `FlowerVert.project` — projection map (not used by the final proof)
 
 ## Main statements
 
@@ -39,10 +38,7 @@ graph on `Fin` has hub distance `u^g`.
 - `long_tgt_eq_succ_src` — consecutive long-path endpoints match
 - `long_first_eq_embed_src`, `long_last_eq_embed_tgt` — long-path boundary
 - `flowerGraph'_adj_iff` — adjacency iff `flowerAdj'`
-- `project_edgeSrc_succ` — source projects to parent source
-- `project_edgeTgt_succ` — target projects to parent source or target
 - `gadget_adj_chain` — u+1 vertex chain through short path of gadget
-- `project_adj_or_eq` — adjacency preserved or collapsed under projection
 - `flowerGraph'_connected` — connectivity of the flower graph
 - `flowerGraph'_dist_hubs` — hub distance equals `u^g`
 - `flowerGraph_dist_hubs` — F2 bridge on `Fin`
@@ -56,7 +52,7 @@ Internal vertices are `Fin (u-1) ⊕ Fin (v-1)`. Edges at generation `g`
 are `FlowerEdge u v g`, defined recursively (parent × local edge),
 avoiding division/modular arithmetic on `Fin`. The lower bound on hub
 distance uses the rank potential `FlowerVert.rank`, which changes by at
-most 1 along an edge; the projection lemmas are not needed for it.
+most 1 along an edge.
 
 ## References
 
@@ -869,7 +865,7 @@ theorem flowerGraph'_dist_hubs (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
   · -- Upper: from the exhibited walk
     obtain ⟨w, hw⟩ := flowerGraph'_walk_hubs u v g hu
     exact hw ▸ (flowerGraph' u v g).dist_le w
-  · -- Lower: from projection
+  · -- Lower: from the rank potential
     exact flowerGraph'_dist_ge u v g hu huv
 
 /-! ## Layer 5: Transport to Fin and final bridge -/
@@ -963,112 +959,3 @@ theorem flowerGraph_dist_hub0_hub1 (u v g : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     (flowerGraph u v g hu huv).dist (hub0 u v g) (hub1 u v g) = u ^ g := by
   rw [← flowerVertEquiv_hub0 u v g hu huv, ← flowerVertEquiv_hub1 u v g hu huv,
     flowerGraph_dist_hubs, flowerHubDist_eq_pow]
-
-/-! ## Projection map (not used by the final proof)
-
-The projection collapses each replacement gadget to a single edge,
-mapping a gen g+1 walk to a gen g walk.
-
-On vertices:
-- Hubs and older internal vertices (gen < g) map to themselves via embed⁻¹
-- Internal vertices at gen g (inside a gadget) map to the source endpoint
-  of their parent edge
-
-On walk segments:
-- A sub-walk within one gadget from src to tgt contributes 1 edge to
-  the projected walk (length ≥ u maps to 1)
-- A sub-walk that enters and returns to the same gadget endpoint
-  contributes 0 edges (but consumes ≥ 0 steps)
-
-This gives: projected walk length × u ≤ original walk length.
-Combined with inductive hypothesis `projected walk length ≥ u^g`,
-we get `original walk length ≥ u^(g+1)`. -/
-
-/-- Project a FlowerVert at gen g+1 back to gen g.
-Internal vertices at generation g collapse to the source endpoint
-of their parent edge. All older vertices map to themselves. -/
-def FlowerVert.project (u v g : ℕ) : FlowerVert u v (g + 1) → FlowerVert u v g
-  | .inl h => .inl h
-  | .inr ⟨k, e, pos⟩ =>
-    if h : k.val < g then
-      -- Older internal vertex: embed back
-      .inr ⟨⟨k.val, h⟩, e, pos⟩
-    else
-      -- Gen g internal vertex: collapse to parent edge's source
-      -- k.val = g (since k : Fin (g+1) and k.val ≥ g means k.val = g)
-      have hk : k.val = g := by omega
-      edgeSrc u v g (hk ▸ e)
-
-/-- Project is a left inverse of embed: projecting an embedded vertex
-recovers the original. -/
-theorem FlowerVert.project_embed (u v g : ℕ) (x : FlowerVert u v g) :
-    FlowerVert.project u v g (FlowerVert.embed u v g x) = x := by
-  cases x with
-  | inl _ => rfl
-  | inr val =>
-    obtain ⟨k, e, pos⟩ := val
-    simp [FlowerVert.embed, FlowerVert.project, Fin.val_castSucc, Fin.eta]
-    rfl
-
-/-- Hub 0 projects to hub 0. -/
-theorem FlowerVert.project_hub0 (u v g : ℕ) :
-    FlowerVert.project u v g (.hub0 u v (g + 1)) = .hub0 u v g := rfl
-
-/-- Hub 1 projects to hub 1. -/
-theorem FlowerVert.project_hub1 (u v g : ℕ) :
-    FlowerVert.project u v g (.hub1 u v (g + 1)) = .hub1 u v g := rfl
-
-/-- A new vertex at generation g projects to the source endpoint of its
-parent edge. -/
-theorem FlowerVert.project_new (u v g : ℕ) (parent : FlowerEdge u v g)
-    (pos : Fin (u - 1) ⊕ Fin (v - 1)) :
-    FlowerVert.project u v g
-      (.inr ⟨⟨g, Nat.lt_succ_of_le le_rfl⟩, parent, pos⟩) =
-    edgeSrc u v g parent := by
-  simp [FlowerVert.project]
-
-/-- Source endpoint of `(parent, localE)` at gen `g+1` always projects to the
-source endpoint of `parent` at gen `g`. -/
-theorem project_edgeSrc_succ (u v g : ℕ) (parent : FlowerEdge u v g)
-    (localE : LocalEdge u v) :
-    FlowerVert.project u v g (edgeSrc u v (g + 1) (parent, localE)) =
-      edgeSrc u v g parent := by
-  rcases localE with ⟨⟨_ | i, hi⟩⟩ | ⟨⟨_ | j, hj⟩⟩ <;>
-    simp only [edgeSrc, edgeEndpoints, localSrc] <;>
-    first
-    | exact FlowerVert.project_embed u v g _
-    | exact FlowerVert.project_new u v g parent _
-
-/-- Target endpoint of `(parent, localE)` at gen `g+1` projects to either the
-source or target endpoint of `parent` at gen `g`. -/
-theorem project_edgeTgt_succ (u v g : ℕ) (parent : FlowerEdge u v g)
-    (localE : LocalEdge u v) :
-    FlowerVert.project u v g (edgeTgt u v (g + 1) (parent, localE)) =
-      edgeSrc u v g parent ∨
-    FlowerVert.project u v g (edgeTgt u v (g + 1) (parent, localE)) =
-      edgeTgt u v g parent := by
-  rcases localE with ⟨i⟩ | ⟨j⟩ <;>
-    simp only [edgeTgt, edgeEndpoints, localTgt] <;>
-    split_ifs <;>
-    first
-    | exact Or.inr (FlowerVert.project_embed u v g _)
-    | exact Or.inl (FlowerVert.project_new u v g parent _)
-
-/-- Adjacent vertices at gen `g+1` project to either equal or adjacent
-vertices at gen `g`. Key lemma for the lower bound proof. -/
-theorem project_adj_or_eq (u v g : ℕ)
-    (a b : FlowerVert u v (g + 1))
-    (hab : flowerAdj' u v (g + 1) a b) :
-    FlowerVert.project u v g a = FlowerVert.project u v g b ∨
-    flowerAdj' u v g
-      (FlowerVert.project u v g a)
-      (FlowerVert.project u v g b) := by
-  obtain ⟨⟨parent, localE⟩, he⟩ := hab
-  rcases he with ⟨ha, hb⟩ | ⟨hb, ha⟩ <;> subst ha <;> subst hb <;>
-    simp only [project_edgeSrc_succ]
-  · rcases project_edgeTgt_succ u v g parent localE with h | h <;> rw [h]
-    · exact Or.inl rfl
-    · exact Or.inr ⟨parent, Or.inl ⟨rfl, rfl⟩⟩
-  · rcases project_edgeTgt_succ u v g parent localE with h | h <;> rw [h]
-    · exact Or.inl rfl
-    · exact Or.inr ⟨parent, Or.inr ⟨rfl, rfl⟩⟩

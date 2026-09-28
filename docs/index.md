@@ -6,7 +6,7 @@ hide:
 
 # fd-formalization
 
-**Lean 4 + Mathlib formalization of the \((u,v)\)-flower log-ratio limit, hub distance and box-counting dimension.**
+**A complete Lean 4 + Mathlib proof that the \((u,v)\)-flowers have fractal dimension \(\log(u+v)/\log u\), up to box-counting dimension.**
 
 [Get Started](getting-started/quickstart.md){ .md-button .md-button--primary }
 [Theorems](reference/theorems.md){ .md-button }
@@ -26,7 +26,7 @@ For \(1 < u \leq v\):
 
 Rozenfeld et al. (2007) identify this limit with the box-counting dimension \(d_B\); F4 proves that identification for the explicit graphs. [navi-fractal](https://github.com/Project-Navi/navi-fractal) uses the formula as calibration ground truth.
 
-The library builds with no `sorry`, and the 75 declarations checked in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
+The library builds with no `sorry`, and the 78 declarations checked in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ## Documentation
 
@@ -37,3 +37,4 @@ The library builds with no `sorry`, and the 75 declarations checked in `Verify.l
 | [Graph Construction](explanation/graph-construction.md) | F2 and F3: gadgets, the distance proof |
 | [Theorems](reference/theorems.md) | Catalog by file |
 | [Roadmap](reference/roadmap.md) | What is done, and the scope |
+| [Prior art](reference/prior-art.md) | The priority claim and the search behind it |

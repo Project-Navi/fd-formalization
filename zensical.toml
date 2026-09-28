@@ -30,6 +30,7 @@ nav = [
   {"Reference" = [
     {"Theorems" = "reference/theorems.md"},
     {"Roadmap" = "reference/roadmap.md"},
+    {"Prior art" = "reference/prior-art.md"},
     {"Changelog" = "reference/changelog.md"},
   ]},
 ]

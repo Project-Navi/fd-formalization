@@ -46,7 +46,7 @@ A volume argument would fail here: hubs have degree \(2^g\), so a ball around a 
 
 ## Axioms
 
-The 75 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
+The 78 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ---
 
@@ -54,3 +54,4 @@ The 75 declarations in `Verify.lean` use only `propext`, `Classical.choice` and 
 
 - H. D. Rozenfeld, S. Havlin & D. ben-Avraham, "Fractal and transfractal recursive scale-free nets," *New Journal of Physics* **9**, 175 (2007)
 - C. Song, S. Havlin & H. A. Makse, "Self-similarity of complex networks," *Nature* **433**, 392 (2005)
+- Z. Neroli, "Fractal dimensions for iterated graph systems," *Proc. R. Soc. A* **480**, 20240406 (2024): explicit Minkowski- and Hausdorff-dimension formulae for deterministic iterated graph systems, stated for a Gromov–Hausdorff scaling limit. F4 is consistent with it; identifying the flowers with the corresponding one-colour system, and bridging the two definitions, has not been written down. See [Prior art](../reference/prior-art.md).
