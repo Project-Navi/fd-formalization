@@ -24,7 +24,7 @@ For \(1 < u \leq v\):
 | **F3** --- graph dimension | so the flower graphs themselves have log-ratio dimension \(\log(u+v)/\log u\) | `FlowerGraphDimension.lean` |
 | **F4** --- box counting | the flower graphs have box-counting dimension \(\log(u+v)/\log u\), along every scale sequence \(\ell_g\) with \(\operatorname{diam} G_g / \ell_g \to \infty\) | `FlowerBoxDimension.lean` |
 
-Rozenfeld et al. (2007) identify this limit with the box-counting dimension \(d_B\); F4 proves that identification for the explicit graphs. [navi-fractal](https://github.com/Project-Navi/navi-fractal) uses the formula as calibration ground truth.
+Rozenfeld et al. (2007) identify this limit with the box-counting dimension \(d_B\); F4 proves that identification for the explicit graphs.
 
 The library builds with no `sorry`, and the 78 declarations checked in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
 
