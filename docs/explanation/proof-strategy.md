@@ -54,4 +54,4 @@ The 76 declarations in `Verify.lean` use only `propext`, `Classical.choice` and 
 
 - H. D. Rozenfeld, S. Havlin & D. ben-Avraham, "Fractal and transfractal recursive scale-free nets," *New Journal of Physics* **9**, 175 (2007)
 - C. Song, S. Havlin & H. A. Makse, "Self-similarity of complex networks," *Nature* **433**, 392 (2005)
-- N. Z. Li, "Fractal dimensions for iterated graph systems," *Proc. R. Soc. A* **480**, 20240406 (2024): a rigorous box- and Hausdorff-dimension formula for iterated graph systems, of which the flower dimension is a special case. F4 is a machine-checked proof of that case, stated along every scale sequence rather than geometric scales only.
+- Z. Neroli, "Fractal dimensions for iterated graph systems," *Proc. R. Soc. A* **480**, 20240406 (2024): explicit Minkowski- and Hausdorff-dimension formulae for deterministic iterated graph systems, stated for a Gromov–Hausdorff scaling limit. F4 is consistent with it; identifying the flowers with the corresponding one-colour system, and bridging the two definitions, has not been written down. See [Prior art](../reference/prior-art.md).

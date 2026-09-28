@@ -37,3 +37,4 @@ The library builds with no `sorry`, and the 76 declarations checked in `Verify.l
 | [Graph Construction](explanation/graph-construction.md) | F2 and F3: gadgets, the distance proof |
 | [Theorems](reference/theorems.md) | Catalog by file |
 | [Roadmap](reference/roadmap.md) | What is done, and the scope |
+| [Prior art](reference/prior-art.md) | The priority claim and the search behind it |
