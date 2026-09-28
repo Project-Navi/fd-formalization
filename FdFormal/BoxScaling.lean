@@ -16,10 +16,25 @@ and is within a constant factor of `b ^ (g - m)` at the scales `ℓ = u ^ m`, th
 scales `ℓ_g` with `L_g / ℓ_g → ∞` (where `L_g` is comparable to `u ^ g`),
 `log N g ℓ_g / log (L_g / ℓ_g) → log b / log u`.
 
+## Main definitions
+
+None: the counts are abstract functions `N : ℕ → ℕ → ℕ`.
+
 ## Main statements
 
-- `exists_pow_le_lt` — every positive `ℓ` lies between consecutive powers of `u`
-- `tendsto_log_count_div_log_scale` — the scaling limit
+- `Nat.exists_pow_le_lt` — every positive `ℓ` lies between consecutive powers of `u`
+- `Real.tendsto_log_count_div_log_scale` — the scaling limit
+
+## Implementation notes
+
+Write `ℓ_g` between consecutive powers `u ^ m ≤ ℓ_g < u ^ (m + 1)` and set `j = g - m`. The
+count is sandwiched between its values at `u ^ (m + 1)` and `u ^ m`, and both the numerator
+and the denominator are `j` times a constant logarithm up to bounded error, so the ratio
+tends to `log b / log u` as `j → ∞`.
+
+## References
+
+- [SongHavlinMakse2005] box-counting exponents as scaling of box counts.
 
 ## Tags
 
@@ -29,7 +44,7 @@ box-counting, scaling, logarithm
 open Filter Real Topology
 
 /-- Every positive `ℓ` lies between two consecutive powers of `u`. -/
-theorem exists_pow_le_lt {u ℓ : ℕ} (hu : 1 < u) (hℓ : 0 < ℓ) :
+theorem Nat.exists_pow_le_lt {u ℓ : ℕ} (hu : 1 < u) (hℓ : 0 < ℓ) :
     ∃ m, u ^ m ≤ ℓ ∧ ℓ < u ^ (m + 1) :=
   ⟨Nat.log u ℓ, Nat.pow_log_le_self u hℓ.ne', Nat.lt_pow_succ_log_self hu ℓ⟩
 
@@ -49,7 +64,7 @@ private lemma tendsto_affine_div_affine (A B C D : ℝ) (hC : C ≠ 0) :
 /-- **Scaling lemma.** A count `N g ℓ` that is antitone in `ℓ` and within the constant
 factor `c` of `b ^ (g - m)` at `ℓ = u ^ m` has exponent `log b / log u` along every scale
 sequence `ℓ_g` with `L_g / ℓ_g → ∞`, where `u ^ g ≤ L_g ≤ c * u ^ g`. -/
-theorem tendsto_log_count_div_log_scale
+theorem Real.tendsto_log_count_div_log_scale
     (u b c : ℕ) (hu : 1 < u) (hb : 1 < b) (hc : 0 < c)
     (N : ℕ → ℕ → ℕ)
     (hanti : ∀ g ℓ ℓ', 0 < ℓ → ℓ ≤ ℓ' → N g ℓ' ≤ N g ℓ)
@@ -60,7 +75,7 @@ theorem tendsto_log_count_div_log_scale
     (hscale : Tendsto (fun g ↦ (L g : ℝ) / ℓ g) atTop atTop) :
     Tendsto (fun g ↦ log (N g (ℓ g) : ℝ) / log ((L g : ℝ) / ℓ g)) atTop
       (𝓝 (log b / log u)) := by
-  choose m hm1 hm2 using fun g ↦ exists_pow_le_lt hu (hℓ g)
+  choose m hm1 hm2 using fun g ↦ Nat.exists_pow_le_lt hu (hℓ g)
   have hu0 : (0 : ℝ) < u := by exact_mod_cast (by omega : 0 < u)
   have hu1 : (1 : ℝ) < u := by exact_mod_cast hu
   have hb0 : (0 : ℝ) < b := by exact_mod_cast (by omega : 0 < b)

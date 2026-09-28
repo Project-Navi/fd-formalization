@@ -80,11 +80,15 @@ verification, axioms, soundness
 #print axioms SimpleGraph.boxCount_le_of_cover
 #print axioms SimpleGraph.le_boxCount_of_separated
 #print axioms SimpleGraph.boxCount_anti
+#print axioms SimpleGraph.boxCount_pos
+#print axioms SimpleGraph.boxCount_le_card
 #print axioms SimpleGraph.Iso.boxCount_eq
 #print axioms SimpleGraph.Hom.dist_le
+#print axioms SimpleGraph.le_add_dist_of_lipschitz
+#print axioms SimpleGraph.tent_lipschitz
 
 -- Scaling lemma (BoxScaling)
-#print axioms tendsto_log_count_div_log_scale
+#print axioms Real.tendsto_log_count_div_log_scale
 
 -- Cell decomposition (FlowerCells)
 #print axioms cellEmbed_injective
@@ -93,7 +97,9 @@ verification, axioms, soundness
 #print axioms cellPotential_lipschitz
 
 -- Rank and radius (FlowerRadius)
+#print axioms rank_le_pow
 #print axioms exists_rank_eq
+#print axioms dist_hub_le
 #print axioms flowerGraph'_dist_le
 
 -- Box-counting dimension of the flower graphs (FlowerBoxDimension)

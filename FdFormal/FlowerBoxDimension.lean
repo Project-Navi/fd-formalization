@@ -7,6 +7,7 @@ import FdFormal.BoxCounting
 import FdFormal.BoxScaling
 import FdFormal.FlowerCells
 import FdFormal.FlowerRadius
+import Mathlib.Analysis.SpecificLimits.Basic
 import Mathlib.Combinatorics.SimpleGraph.Diam
 
 /-!
@@ -21,7 +22,7 @@ against their diameter along every scale sequence `ℓ_g` with `diam G_g / ℓ_g
 
 ## Main statements
 
-- `flower_boxCount_ge` — the `(u + v) ^ k` cell centers are `u ^ j / 2`-separated
+- `flower_boxCount_ge` — for `0 < j`, the `(u + v) ^ k` cell centers are `u ^ j / 2`-separated
 - `flower_boxCount_le` — the `(u + v) ^ k` cells are boxes of size `(2v + 1) u ^ j + 1`
 - `flowerGraph_hasBoxDimension` — the flowers have box-counting dimension
   `log (u + v) / log u`
@@ -40,7 +41,7 @@ Upper bound: each cell is the image of the generation-`j` flower under the homom
 `flowerGraph'_dist_le`); the cells cover the graph (`exists_cellEmbed_eq`), so
 `boxCount_le_of_cover` applies.
 
-Assembly: `tendsto_log_count_div_log_scale` with `b = u + v`, `L = diam`
+Assembly: `Real.tendsto_log_count_div_log_scale` with `b = u + v`, `L = diam`
 (`u ^ g ≤ diam ≤ (2v + 1) u ^ g`), transported to `Fin` by `Iso.boxCount_eq`.
 
 ## References
@@ -55,9 +56,12 @@ flower graph, box-counting dimension, fractal dimension
 
 open Filter Real Topology
 
-/-- A graph family `G g` has box-counting dimension `d` if, along every scale sequence
-`ℓ_g ≥ 1` with `diam (G g) / ℓ_g → ∞`, `log N_B(G g, ℓ_g) / log (diam (G g) / ℓ_g) → d`. -/
+/-- A graph family `G g` has box-counting dimension `d` if its diameters diverge and, along
+every scale sequence `ℓ_g ≥ 1` with `diam (G g) / ℓ_g → ∞`,
+`log N_B(G g, ℓ_g) / log (diam (G g) / ℓ_g) → d`. Divergence makes `ℓ_g = 1` admissible,
+so `d` is unique. -/
 def HasBoxDimension {V : ℕ → Type*} (G : (g : ℕ) → SimpleGraph (V g)) (d : ℝ) : Prop :=
+  Tendsto (fun g ↦ ((G g).diam : ℝ)) atTop atTop ∧
   ∀ ℓ : ℕ → ℕ, (∀ g, 0 < ℓ g) →
     Tendsto (fun g ↦ ((G g).diam : ℝ) / ℓ g) atTop atTop →
     Tendsto (fun g ↦ log ((G g).boxCount (ℓ g) : ℝ) / log (((G g).diam : ℝ) / ℓ g))
@@ -188,7 +192,6 @@ private lemma flower_count_upper (hu : 1 < u) (huv : u ≤ v) {s : ℕ} (hs : 2 
 /-- **The flowers have box-counting dimension `log (u + v) / log u`.** -/
 theorem flowerGraph_hasBoxDimension (hu : 1 < u) (huv : u ≤ v) :
     HasBoxDimension (fun g ↦ flowerGraph u v g hu huv) (log ↑(u + v) / log ↑u) := by
-  intro ℓ hℓ hscale
   have hdiam : ∀ g, (flowerGraph u v g hu huv).diam = (flowerGraph' u v g).diam := by
     intro g
     obtain ⟨φ⟩ := nonempty_flowerGraph_iso hu huv g
@@ -196,6 +199,12 @@ theorem flowerGraph_hasBoxDimension (hu : 1 < u) (huv : u ≤ v) :
     have : Nonempty (FlowerVert u v g) := ⟨.hub0 u v g⟩
     have : Nonempty (Fin (flowerVertCount u v g)) := ⟨φ (.hub0 u v g)⟩
     exact le_antisymm (iso_diam_le φ hc) (iso_diam_le φ.symm (φ.connected_iff.mp hc))
+  refine ⟨?_, fun ℓ hℓ hscale ↦ ?_⟩
+  · -- the diameters diverge, since `u ^ g ≤ diam`
+    simp only [hdiam]
+    refine tendsto_atTop_mono (fun g ↦ ?_) (tendsto_pow_atTop_atTop_of_one_lt
+      (by exact_mod_cast hu : (1 : ℝ) < u))
+    exact_mod_cast (flowerGraph'_diam_bounds hu huv g).1
   have hbox : ∀ g n, (flowerGraph u v g hu huv).boxCount n =
       (flowerGraph' u v g).boxCount n :=
     fun g n ↦ (nonempty_flowerGraph_iso hu huv g).some.boxCount_eq n
@@ -211,7 +220,7 @@ theorem flowerGraph_hasBoxDimension (hu : 1 < u) (huv : u ≤ v) :
     (Nat.le_mul_of_pos_right _ (by omega)).trans hK
   have hC3 : 2 * v + 1 ≤ (2 * v + 1) * (2 * X * (u + v)) :=
     Nat.le_mul_of_pos_right _ (by positivity)
-  refine tendsto_log_count_div_log_scale u (u + v) ((2 * v + 1) * (2 * X * (u + v))) hu
+  refine Real.tendsto_log_count_div_log_scale u (u + v) ((2 * v + 1) * (2 * X * (u + v))) hu
     (by omega) (by positivity) (fun g n ↦ (flowerGraph' u v g).boxCount n)
     (fun g _ _ h h' ↦ SimpleGraph.boxCount_anti h h') (fun g m hm ↦ ?_) (fun g m hm ↦ ?_)
     (fun g ↦ (flowerGraph' u v g).diam) (fun g ↦ ?_) ℓ hℓ hscale

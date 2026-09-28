@@ -27,6 +27,13 @@ diameter `< ℓ` needed to cover every vertex.
 - `SimpleGraph.Iso.boxCount_eq` — `boxCount` is invariant under isomorphism
 - `SimpleGraph.le_add_dist_of_lipschitz` — a 1-Lipschitz potential bounds distance
 
+## Implementation notes
+
+`boxCount` is the `sInf` of the attainable cover sizes, so it takes the junk value `0` when no
+finite cover exists: at `ℓ = 0`, where no nonempty set is a box, or on an infinite graph with
+no finite cover. The counting lemmas therefore assume `[Finite V]` and `0 < ℓ` where they
+need a genuine minimum.
+
 ## References
 
 - [SongHavlinMakse2005] box covering of complex networks.
@@ -44,7 +51,8 @@ variable {V W : Type*} (G : SimpleGraph V)
 def IsBox (ℓ : ℕ) (B : Set V) : Prop :=
   ∀ ⦃x⦄, x ∈ B → ∀ ⦃y⦄, y ∈ B → G.edist x y < ℓ
 
-/-- The box-covering number `N_B(G, ℓ)`: the fewest boxes of size `ℓ` covering every vertex. -/
+/-- The box-covering number `N_B(G, ℓ)`: the fewest boxes of size `ℓ` covering every vertex.
+It is `0` when no finite cover exists (for example at `ℓ = 0`); see the module notes. -/
 noncomputable def boxCount (ℓ : ℕ) : ℕ :=
   sInf {n | ∃ B : Fin n → Set V, (∀ i, G.IsBox ℓ (B i)) ∧ ∀ x, ∃ i, x ∈ B i}
 

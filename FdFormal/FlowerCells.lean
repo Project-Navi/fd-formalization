@@ -35,6 +35,10 @@ their hubs.
 Generations are indexed as `k + j` throughout, so `k + (j + 1)` reduces to
 `(k + j) + 1` definitionally and no casts between `FlowerEdge` types are needed.
 
+## References
+
+- [Rozenfeld2007] the recursive construction of the (u,v)-flowers.
+
 ## Tags
 
 flower graph, self-similarity, cell decomposition

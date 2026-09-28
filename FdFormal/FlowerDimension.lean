@@ -18,7 +18,7 @@ For the arithmetic (u,v)-flower model (with `1 < u`, `u ≤ v`), the ratio
 
 In the physics literature (Rozenfeld et al. 2007), this quantity equals the
 box-counting fractal dimension `d_B`. This file proves the log-ratio convergence;
-a formal bridge to a box-counting definition is not yet built.
+`FlowerBoxDimension.lean` proves the box-counting dimension of the explicit graphs.
 
 The proof uses Route B (squeeze): two-sided bounds on `N_g` in terms
 of `(u+v)^g`, combined with `L_g = u^g`, yield the log-ratio limit.
@@ -94,7 +94,7 @@ theorem flowerVertCount_le_real (u v g : ℕ) (hu : 1 < u)
 The ratio `log |V_g| / log L_g` tends to `log(u + v) / log(u)` as `g → ∞`.
 
 In the physics literature this limit equals the box-counting dimension `d_B`;
-a formal bridge to that definition is deferred. -/
+`flowerGraph_hasBoxDimension` proves that for the explicit graphs. -/
 theorem flowerDimension (u v : ℕ) (hu : 1 < u) (huv : u ≤ v) :
     Tendsto
       (fun g : ℕ ↦

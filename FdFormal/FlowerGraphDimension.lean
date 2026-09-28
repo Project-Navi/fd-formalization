@@ -15,8 +15,8 @@ The explicit (u,v)-flower graphs `flowerGraph u v g` have log-ratio dimension
 arithmetic limit `flowerDimension` with the hub distance `flowerGraph_dist_hub0_hub1` and
 `Fintype.card (Fin n) = n`.
 
-The limit is the box-counting dimension of the flowers in the physics literature; that
-identification is not formalized.
+The limit is the box-counting dimension of the flowers in the physics literature;
+`flowerGraph_hasBoxDimension` in `FlowerBoxDimension.lean` proves that identification.
 
 ## Main statements
 

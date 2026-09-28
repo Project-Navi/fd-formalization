@@ -11,6 +11,10 @@ import FdFormal.FlowerConstruction
 Every vertex of the generation-`g` flower is within `v * u ^ g` of a hub, so the diameter
 is at most `(2 * v + 1) * u ^ g`. The rank potential takes every value in `[0, u ^ g]`.
 
+## Main definitions
+
+None: this file proves bounds on `FlowerVert.rank` and on distances.
+
 ## Main statements
 
 - `rank_le_pow` — ranks lie in `[0, u ^ g]`
@@ -25,6 +29,10 @@ is at most `(2 * v + 1) * u ^ g`. The rank potential takes every value in `[0, u
 generation-`g` distance of a hub, by `lift_walk`. A new vertex sits on the short or long
 path of a gadget, within `v / 2` steps of an embedded endpoint of its parent edge. That
 gives `R (g + 1) ≤ u * R g + v / 2`, and `R g ≤ v * u ^ g` follows since `2 ≤ u`.
+
+## References
+
+- [Rozenfeld2007] the flowers' hub distance `u ^ g`.
 
 ## Tags
 
@@ -58,7 +66,10 @@ private theorem chain_walk {V : Type*} (G : SimpleGraph V) (f : ℕ → V) (m : 
     rcases Nat.eq_or_lt_of_le hab with rfl | hlt
     · exact ⟨.nil, by simp⟩
     · obtain ⟨w, hw⟩ := ih (by omega) (by omega)
-      exact ⟨w.append (.cons (hf b (by omega)) .nil), by simp [hw]; omega⟩
+      exact ⟨w.append (.cons (hf b (by omega)) .nil), by
+        simp only [SimpleGraph.Walk.length_append, SimpleGraph.Walk.length_cons,
+          SimpleGraph.Walk.length_nil, hw]
+        omega⟩
 
 theorem rank_le_pow (hu : 1 < u) (huv : u ≤ v) (g : ℕ) (x : FlowerVert u v g) :
     FlowerVert.rank u v g x ≤ u ^ g := by
@@ -173,7 +184,7 @@ private theorem hub_walk_invariant (hu : 1 < u) (huv : u ≤ v) (g : ℕ)
             rw [← short_tgt_eq_succ_src u v g parent ⟨n, hn⟩ hn1]
             exact short_path_consecutive_adj u v g parent ⟨n, hn⟩
           · simp only [f, dite_eq_left hn, dite_eq_right hn1]
-            have : (⟨n, hn⟩ : Fin u) = ⟨u - 1, by omega⟩ := Fin.ext (by simp; omega)
+            have : (⟨n, hn⟩ : Fin u) = ⟨u - 1, by omega⟩ := Fin.ext (show n = u - 1 by omega)
             rw [this, ← short_last_eq_embed_tgt u v g hu parent]
             exact short_path_consecutive_adj u v g parent ⟨u - 1, by omega⟩
         have hf0 : f 0 = FlowerVert.embed u v g (edgeSrc u v g parent) := by
@@ -206,7 +217,7 @@ private theorem hub_walk_invariant (hu : 1 < u) (huv : u ≤ v) (g : ℕ)
             rw [← long_tgt_eq_succ_src u v g parent ⟨n, hn⟩ hn1]
             exact long_path_consecutive_adj u v g parent ⟨n, hn⟩
           · simp only [f, dite_eq_left hn, dite_eq_right hn1]
-            have : (⟨n, hn⟩ : Fin v) = ⟨v - 1, by omega⟩ := Fin.ext (by simp; omega)
+            have : (⟨n, hn⟩ : Fin v) = ⟨v - 1, by omega⟩ := Fin.ext (show n = v - 1 by omega)
             rw [this, ← long_last_eq_embed_tgt u v g hu huv parent]
             exact long_path_consecutive_adj u v g parent ⟨v - 1, by omega⟩
         have hf0 : f 0 = FlowerVert.embed u v g (edgeSrc u v g parent) := by

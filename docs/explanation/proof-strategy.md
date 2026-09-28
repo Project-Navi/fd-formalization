@@ -32,7 +32,7 @@ F1 is about the recurrences. F2 builds the flower as an explicit `SimpleGraph` o
 
 ## F4: box counting
 
-A box of size \(\ell\) is a vertex set whose points are pairwise at distance \(< \ell\), and \(N_B(G, \ell)\) is the fewest boxes that cover \(G\) (Song, Havlin & Makse 2005). `HasBoxDimension` asks that \(\log N_B(G_g, \ell_g) / \log(\operatorname{diam} G_g / \ell_g) \to d\) along **every** scale sequence with \(\operatorname{diam} G_g / \ell_g \to \infty\), so the value cannot depend on a choice of scales.
+A box of size \(\ell\) is a vertex set whose points are pairwise at distance \(< \ell\), and \(N_B(G, \ell)\) is the fewest boxes that cover \(G\) (Song, Havlin & Makse 2005). `HasBoxDimension` asks that the diameters diverge and that \(\log N_B(G_g, \ell_g) / \log(\operatorname{diam} G_g / \ell_g) \to d\) along **every** scale sequence with \(\operatorname{diam} G_g / \ell_g \to \infty\), so the value cannot depend on a choice of scales and is unique.
 
 The proof is the renormalization picture made exact. Each generation-\(k\) edge is replaced, \(j\) generations later, by a copy of the generation-\(j\) flower: its *cell* (`cellEmbed`). The generation-\((k + j)\) flower is \(w^k\) cells of scale \(u^j\), and cells meet only at their hubs.
 
@@ -46,7 +46,7 @@ A volume argument would fail here: hubs have degree \(2^g\), so a ball around a 
 
 ## Axioms
 
-The 46 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
+The 52 declarations in `Verify.lean` use only `propext`, `Classical.choice` and `Quot.sound`.
 
 ---
 
